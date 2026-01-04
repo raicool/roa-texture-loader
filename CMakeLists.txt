@@ -21,7 +21,7 @@ file(GLOB IMGUI_SOURCE
 
 add_library(${PROJECT_NAME} SHARED ${CXX_SOURCE} ${IMGUI_SOURCE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}")
-target_include_directories(${PROJECT_NAME} PRIVATE "src")
+target_include_directories(${PROJECT_NAME} PRIVATE "src" "include")
 
 # vendors
 # roa-mod-loader
@@ -32,6 +32,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE "vendor/roa-mod-loader/loader
 # imgui
 target_include_directories(${PROJECT_NAME} PRIVATE "vendor/imgui")
 target_include_directories(${PROJECT_NAME} PRIVATE "vendor/imgui/backends")
+
+# yaml-cpp
+target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp::yaml-cpp)
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD

@@ -1,10 +1,10 @@
 #pragma once
 
-#define SPRITE_DIRECTORY "custom_sprites/"
+#include <filesystem>
 
 void __setup_funcids();
 
-void overwrite_sprites();
+void overwrite_sprite(const std::filesystem::path& entry);
 
 struct GMLVar;
 
