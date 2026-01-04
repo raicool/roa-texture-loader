@@ -4,6 +4,9 @@
 [![GitHub last commit](https://badgen.net/github/last-commit/raicool/roa-texture-loader/main)](https://github.com/raicool/roa-texture-loader/commits/main)
 
 custom texture loader for rivals of aether 1 
+
+#### Wiki page for help creating your own texture pack: https://github.com/raicool/roa-texture-loader/wiki/Getting-Started
+
 ###### requires [roa-mod-loader](https://github.com/raicool/roa-mod-loader) to be installed to Rivals of Aether's game directory
 
 <img width="2391" height="1205" alt="RivalsofAether_GVG7mwkqPg" src="https://github.com/raicool/roa-texture-loader/blob/main/image.png?raw=true"/>
