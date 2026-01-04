@@ -39,6 +39,8 @@ void fetch_packimg()
 		{
 			// wait for d3d device/context
 			std::this_thread::sleep_for(500ms);
+			d3d_device = loader_get_d3d_device();
+			d3d_device_context = loader_get_d3d_device_context();
 		}
 
 		HRESULT hr;

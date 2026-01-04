@@ -27,20 +27,42 @@ void render_ui()
 
 		if (pack_list)
 		{
-			for (const std::shared_ptr<pack>& _pack : *pack_list)
-			{
-				render_packdata(_pack);
-			}
+			render_texturepack_table(pack_list);
+		}
+	}
+	ImGui::End();
+}
+
+void render_texturepack_table(packlist* pack_list)
+{
+	constexpr ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_HighlightHoveredColumn;
+
+	if (ImGui::BeginTable("##", 3, flags))
+	{
+		ImGui::TableSetupScrollFreeze(0, 1);
+		ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 32);
+		ImGui::TableSetupColumn("Details", ImGuiTableColumnFlags_None);
+		ImGui::TableSetupColumn("Enabled", ImGuiTableColumnFlags_WidthFixed, 128);
+		for (const std::shared_ptr<pack>& _pack : *pack_list)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			render_packdata(_pack);
 		}
 
-		ImGui::End();
+		ImGui::EndTable();
 	}
 }
 
 void render_packdata(const std::shared_ptr<pack>& packdata)
 {
 	ImGui::Image(packdata->pack_img, { 32, 32 });
+	ImGui::TableNextColumn();
+
 	ImGui::Text("%s", packdata->name.c_str());
 	ImGui::Text("by %s", packdata->author.c_str());
 	ImGui::Text("%s", packdata->description.c_str());
+
+	ImGui::TableNextColumn();
+	ImGui::Checkbox("Enabled?", &packdata->enabled);
 }
