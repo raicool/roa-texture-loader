@@ -47,7 +47,11 @@ void render_texturepack_table(packlist* pack_list)
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
+
+			// use pointer as id
+			ImGui::PushID((int32_t)_pack.get());
 			render_packdata(_pack);
+			ImGui::PopID();
 		}
 
 		ImGui::EndTable();
@@ -56,7 +60,11 @@ void render_texturepack_table(packlist* pack_list)
 
 void render_packdata(const std::shared_ptr<pack>& packdata)
 {
-	ImGui::Image(packdata->pack_img, { 32, 32 });
+	if (packdata->pack_img)
+	{
+		ImGui::Image(packdata->pack_img, { 32, 32 });
+	}
+
 	ImGui::TableNextColumn();
 
 	ImGui::Text("%s", packdata->name.c_str());
