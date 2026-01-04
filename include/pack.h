@@ -3,6 +3,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <filesystem>
+#include <thread>
 
 struct ID3D11ShaderResourceView;
 struct pack
@@ -21,6 +22,7 @@ struct pack
 };
 
 std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir);
+void fetch_packimg();
 
 template<typename T>
 YAML::Node get_node_safe(YAML::Node node, std::string leaf, T placeholder)

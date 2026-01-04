@@ -11,6 +11,48 @@
 #include <filesystem>
 #include <memory>
 #include <format>
+#include <queue>
+
+struct img_request
+{
+	unsigned char* buffer;
+	size_t length;
+	ID3D11ShaderResourceView** shader_res;
+};
+
+std::mutex img_queue_mutex;
+std::queue<img_request> img_buffer_queue;
+
+using namespace std::literals::chrono_literals;
+
+void fetch_packimg()
+{
+	std::unique_lock<std::mutex> lock(img_queue_mutex);
+	while (!img_buffer_queue.empty())
+	{
+		img_request img = img_buffer_queue.front();
+		img_buffer_queue.pop();
+			
+		auto d3d_device = loader_get_d3d_device();
+		auto d3d_device_context = loader_get_d3d_device_context();
+		while (!d3d_device && !d3d_device_context)
+		{
+			// wait for d3d device/context
+			std::this_thread::sleep_for(500ms);
+		}
+
+		HRESULT hr;
+		hr = CreateWICTextureFromMemory(
+			d3d_device,
+			d3d_device_context,
+			&img.buffer[0],
+			img.length,
+			nullptr,
+			img.shader_res,
+			NULL
+		);
+	}
+}
 
 std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 {
@@ -60,16 +102,7 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 		pack_img.read(&buffer[0], length);
 		pack_img.close();
 
-		HRESULT hr;
-		hr = CreateWICTextureFromMemory(
-			loader_get_d3d_device(),
-			loader_get_d3d_device_context(),
-			&buffer[0],
-			(size_t)length,
-			nullptr,
-			&_pack->pack_img,
-			NULL
-		);
+		img_buffer_queue.push(img_request{ buffer, (size_t)length, &_pack->pack_img });
 	}
 	else
 	{

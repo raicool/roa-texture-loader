@@ -24,6 +24,9 @@ void update_packlist()
 			loaded_packs.emplace_back(new_pack);
 		}
 	}
+
+	std::thread fetch(fetch_packimg);
+	fetch.join(); //< todo: remove the need to join thread
 }
 
 void apply_packs()

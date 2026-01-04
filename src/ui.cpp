@@ -40,5 +40,7 @@ void render_ui()
 void render_packdata(const std::shared_ptr<pack>& packdata)
 {
 	ImGui::Image(packdata->pack_img, { 32, 32 });
-	ImGui::Text("%s", packdata->name);
+	ImGui::Text("%s", packdata->name.c_str());
+	ImGui::Text("by %s", packdata->author.c_str());
+	ImGui::Text("%s", packdata->description.c_str());
 }

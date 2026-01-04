@@ -3,6 +3,7 @@
 #include "mod.h"
 #include "ui.h"
 #include "packlist.h"
+#include "pack.h"
 
 #include <loader/d3d11_hook.h>
 
