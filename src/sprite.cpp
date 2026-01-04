@@ -1,0 +1,220 @@
+#include "sprite.h"
+
+#include "loader/yyc.h"
+#include <filesystem>
+
+bool ready;
+
+int object_exists;
+int asset_get_index;
+int sprite_get_name;
+int sprite_add;
+int sprite_assign;
+int sprite_exists;
+int sprite_get_number;
+int sprite_get_uvs;
+int sprite_get_xoffset;
+int sprite_get_yoffset;
+int sprite_get_texture;
+int sprite_get_width;
+int sprite_get_height;
+int texture_get_width;
+int texture_get_height;
+int texture_get_texel_width;
+int texture_get_texel_height;
+
+void __setup_funcids()
+{
+	object_exists = loader_yyc_get_funcid("object_exists");
+	asset_get_index = loader_yyc_get_funcid("asset_get_index");
+	sprite_get_name = loader_yyc_get_funcid("sprite_get_name");
+	sprite_add = loader_yyc_get_funcid("sprite_add");
+	sprite_assign = loader_yyc_get_funcid("sprite_assign");
+	sprite_exists = loader_yyc_get_funcid("sprite_exists");
+	sprite_get_number = loader_yyc_get_funcid("sprite_get_number");
+	sprite_get_uvs = loader_yyc_get_funcid("sprite_get_uvs");
+	sprite_get_xoffset = loader_yyc_get_funcid("sprite_get_xoffset");
+	sprite_get_yoffset = loader_yyc_get_funcid("sprite_get_yoffset");
+	sprite_get_texture = loader_yyc_get_funcid("sprite_get_texture");
+	sprite_get_width = loader_yyc_get_funcid("sprite_get_width");
+	sprite_get_height = loader_yyc_get_funcid("sprite_get_height");
+	texture_get_width = loader_yyc_get_funcid("texture_get_width");
+	texture_get_height = loader_yyc_get_funcid("texture_get_height");
+	texture_get_texel_width = loader_yyc_get_funcid("texture_get_texel_width");
+	texture_get_texel_height = loader_yyc_get_funcid("texture_get_texel_height");
+
+	ready = true;
+}
+
+bool is_digits(std::string& str)
+{
+	for (char ch : str) 
+	{
+		int v = ch; // ASCII Val converted
+		if (!(ch >= 48 && ch <= 57)) 
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void overwrite_sprites()
+{
+	if (!ready)
+	{
+		__setup_funcids();
+	}
+
+	std::filesystem::create_directory(SPRITE_DIRECTORY);
+
+	for (auto entry : std::filesystem::directory_iterator(SPRITE_DIRECTORY))
+	{
+		if (entry.is_directory()) continue;
+
+		std::filesystem::path path = entry.path();
+		if (path.extension() == ".png")
+		{
+			std::string filename = path.stem().generic_string();
+			std::string sprite_name_str = filename.substr(0, filename.find("_strip"));
+			GMLVar sprite_name = GMLVar(sprite_name_str);
+			GMLVar* args[] = { &sprite_name };
+			GMLVar* sprite_id = loader_yyc_call_func(asset_get_index, 1, args);
+
+			args[0] = sprite_id;
+			if (loader_yyc_call_func(sprite_exists, 1, args)->truthy())
+			{
+				// i really have to do this
+				GMLVar zero = GMLVar(0);
+				GMLVar frames = GMLVar(1);
+
+				GMLVar* xoffset = loader_yyc_call_func(sprite_get_xoffset, 1, args);
+				GMLVar* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
+
+				if (filename.contains("_strip"))
+				{
+					std::string frames_str = filename.substr(filename.find("_strip") + 6, filename.size());
+
+					if (is_digits(frames_str))
+					{
+						frames.valueInt32 = std::stoi(frames_str);
+					}
+				}
+
+				GMLVar sprite_filename = GMLVar(SPRITE_DIRECTORY + filename + ".png");
+				GMLVar* argsSpriteAdd[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
+				GMLVar* newSprite = loader_yyc_call_func(sprite_add, 6, argsSpriteAdd);
+
+				GMLVar* argsSpriteAssign[] = { sprite_id, newSprite };
+				loader_yyc_call_func(sprite_assign, 2, argsSpriteAssign);
+			}
+		}
+	}
+}
+
+GMLVar* get_sprite_name(int id)
+{
+	if (!ready)
+	{
+		__setup_funcids();
+	}
+
+	GMLVar sprite_id = GMLVar(id);
+
+	GMLVar* sprite_get_name_args[] = { &sprite_id };
+	GMLVar* name = loader_yyc_call_func(sprite_get_name, 1, sprite_get_name_args);
+
+	return name;
+}
+
+GMLVar* get_sprite_texture(int id)
+{
+	if (!ready)
+	{
+		__setup_funcids();
+	}
+
+	GMLVar sprite_id = GMLVar(id);
+
+	// i really have to do this
+	GMLVar zero = GMLVar(0);
+	GMLVar* sprite_get_texture_args[] = { &sprite_id, &zero };
+	GMLVar* uvs = loader_yyc_call_func(sprite_get_texture, 2, sprite_get_texture_args);
+
+	return uvs;
+}
+
+GMLVar* get_sprite_width(int id)
+{
+	if (!ready)
+	{
+		__setup_funcids();
+	}
+
+	GMLVar sprite_id = GMLVar(id);
+
+	GMLVar* args[] = { &sprite_id };
+	return loader_yyc_call_func(sprite_get_width, 1, args);
+}
+
+GMLVar* get_sprite_height(int id)
+{
+	if (!ready)
+	{
+		__setup_funcids();
+	}
+
+	GMLVar sprite_id = GMLVar(id);
+
+	GMLVar* args[] = { &sprite_id };
+	return loader_yyc_call_func(sprite_get_height, 1, args);
+}
+
+GMLVar* get_texture_width(GMLVar* texture)
+{
+	if (texture->type != GML_TYPE_POINTER)
+	{
+		loader_log_warn("attempted to get texture width from an invalid variable type (texture->type != GML_TYPE_POINTER)");
+		return nullptr;
+	}
+
+	GMLVar* args[] = { texture };
+	return loader_yyc_call_func(texture_get_width, 1, args);
+}
+
+GMLVar* get_texture_height(GMLVar* texture)
+{
+	if (texture->type != GML_TYPE_POINTER)
+	{
+		loader_log_warn("attempted to get texture height from an invalid variable type (texture->type != GML_TYPE_POINTER)");
+		return nullptr;
+	}
+
+	GMLVar* args[] = { texture };
+	return loader_yyc_call_func(texture_get_height, 1, args);
+}
+
+GMLVar* get_texture_texel_width(GMLVar* texture)
+{
+	if (texture->type != GML_TYPE_POINTER)
+	{
+		loader_log_warn("attempted to get texture texel width from an invalid variable type (texture->type != GML_TYPE_POINTER)");
+		return nullptr;
+	}
+
+	GMLVar* args[] = { texture };
+	return loader_yyc_call_func(texture_get_texel_width, 1, args);
+}
+
+GMLVar* get_texture_texel_height(GMLVar* texture)
+{
+	if (texture->type != GML_TYPE_POINTER)
+	{
+		loader_log_warn("attempted to get texture texel height from an invalid variable type (texture->type != GML_TYPE_POINTER)");
+		return nullptr;
+	}
+
+	GMLVar* args[] = { texture };
+	return loader_yyc_call_func(texture_get_texel_height, 1, args);
+}
