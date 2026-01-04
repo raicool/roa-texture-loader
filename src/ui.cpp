@@ -24,6 +24,11 @@ void render_ui()
 {
 	if (ImGui::Begin(MOD_NAME))
 	{
+		if (ImGui::Button("Reload Textures"))
+		{
+			apply_packs();
+		}
+
 		packlist* pack_list = get_packlist();
 
 		if (pack_list)
