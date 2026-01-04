@@ -7,6 +7,7 @@
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
 
+bool ui_visible = true;
 void handle_wndproc(
 	const HWND hWnd,
 	UINT uMsg,
@@ -17,6 +18,11 @@ void handle_wndproc(
 	if (uMsg == WM_KEYDOWN && wParam == VK_F1)
 	{
 		apply_packs();
+	}
+
+	if (uMsg == WM_KEYDOWN && wParam == VK_F2)
+	{
+		ui_visible = !ui_visible;
 	}
 
 	LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -39,7 +45,10 @@ void dx_present(
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	render_ui();
+	if (ui_visible)
+	{
+		render_ui();
+	}
 
 	ImGui::Render();
 
