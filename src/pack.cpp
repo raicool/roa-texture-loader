@@ -77,17 +77,17 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 	}
 
 	// texture pack name
-	_pack->name = get_node_safe(
+	_pack->name = get_nodeleaf_safe(
 		config,
 		"pack-name",
 		"???").as<std::string>();
 
-	_pack->description = get_node_safe(
+	_pack->description = get_nodeleaf_safe(
 		config,
 		"pack-description",
 		"missing description").as<std::string>();
 
-	_pack->author = get_node_safe(
+	_pack->author = get_nodeleaf_safe(
 		config,
 		"author",
 		"").as<std::string>();
