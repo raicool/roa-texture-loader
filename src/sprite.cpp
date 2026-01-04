@@ -105,9 +105,11 @@ void overwrite_sprites()
 				GMLVar sprite_filename = GMLVar(SPRITE_DIRECTORY + filename + ".png");
 				GMLVar* argsSpriteAdd[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
 				GMLVar* newSprite = loader_yyc_call_func(sprite_add, 6, argsSpriteAdd);
-
+					
 				GMLVar* argsSpriteAssign[] = { sprite_id, newSprite };
 				loader_yyc_call_func(sprite_assign, 2, argsSpriteAssign);
+
+				loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
 			}
 		}
 	}
