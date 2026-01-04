@@ -25,7 +25,7 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir);
 void fetch_packimg();
 
 template<typename T>
-YAML::Node get_node_safe(YAML::Node node, std::string leaf, T placeholder)
+YAML::Node get_nodeleaf_safe(YAML::Node node, std::string leaf, T placeholder)
 {
 	if (node[leaf].IsDefined())
 	{

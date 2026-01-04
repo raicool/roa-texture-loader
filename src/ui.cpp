@@ -6,6 +6,7 @@
 #include <loader/d3d11_hook.h>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <imgui_impl_win32.h>
 
 #include <memory>
@@ -40,18 +41,22 @@ void render_texturepack_table(packlist* pack_list)
 	if (ImGui::BeginTable("##", 3, flags))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
-		ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 32);
+		ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 48);
 		ImGui::TableSetupColumn("Details", ImGuiTableColumnFlags_None);
 		ImGui::TableSetupColumn("Enabled", ImGuiTableColumnFlags_WidthFixed, 128);
+		ImGui::TableHeadersRow();
+		uint32_t i = 0;
 		for (const std::shared_ptr<pack>& _pack : *pack_list)
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 
-			// use pointer as id
-			ImGui::PushID((int32_t)_pack.get());
+			ImGui::PushID(i);
+
 			render_packdata(_pack);
+
 			ImGui::PopID();
+			i++;
 		}
 
 		ImGui::EndTable();
@@ -60,17 +65,21 @@ void render_texturepack_table(packlist* pack_list)
 
 void render_packdata(const std::shared_ptr<pack>& packdata)
 {
-	if (packdata->pack_img)
-	{
-		ImGui::Image(packdata->pack_img, { 32, 32 });
-	}
 
-	ImGui::TableNextColumn();
-
+	ImGui::TableSetColumnIndex(1);
 	ImGui::Text("%s", packdata->name.c_str());
 	ImGui::Text("by %s", packdata->author.c_str());
 	ImGui::Text("%s", packdata->description.c_str());
 
 	ImGui::TableNextColumn();
 	ImGui::Checkbox("Enabled?", &packdata->enabled);
+
+	// render pack image last since we need to know the height of the table row
+	ImGui::TableSetColumnIndex(0);
+	auto* table = ImGui::GetCurrentContext()->CurrentTable;
+	if (packdata->pack_img)
+	{
+		auto rect = ImGui::TableGetCellBgRect(table, table->CurrentColumn);
+		ImGui::Image(packdata->pack_img, { rect.GetHeight(), rect.GetHeight() });
+	}
 }
