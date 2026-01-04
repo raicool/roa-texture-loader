@@ -86,8 +86,13 @@ void overwrite_sprites()
 			if (loader_yyc_call_func(sprite_exists, 1, args)->truthy())
 			{
 				// i really have to do this
-				GMLVar zero = GMLVar(0);
-				GMLVar frames = GMLVar(1);
+				GMLVar zero = GMLVar();
+				zero.type = GML_TYPE_INT32;
+				zero.valueInt32 = 0;
+
+				GMLVar frames = GMLVar();
+				frames.type = GML_TYPE_INT32;
+				frames.valueInt32 = 1;
 
 				GMLVar* xoffset = loader_yyc_call_func(sprite_get_xoffset, 1, args);
 				GMLVar* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
