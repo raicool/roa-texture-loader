@@ -31,6 +31,8 @@ void update_packlist()
 
 void apply_packs()
 {
+	reset_sprites();
+
 	for (auto& _pack : loaded_packs)
 	{
 		if (_pack->enabled)

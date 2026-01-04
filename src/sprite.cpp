@@ -1,7 +1,9 @@
 #include "sprite.h"
 
 #include "loader/yyc.h"
+
 #include <filesystem>
+#include <unordered_map>
 
 bool ready;
 
@@ -10,6 +12,7 @@ int asset_get_index;
 int sprite_get_name;
 int sprite_add;
 int sprite_assign;
+int sprite_duplicate;
 int sprite_exists;
 int sprite_get_number;
 int sprite_get_uvs;
@@ -23,6 +26,8 @@ int texture_get_height;
 int texture_get_texel_width;
 int texture_get_texel_height;
 
+std::unordered_map<GMLVar*, GMLVar*> original_sprites;
+
 void __setup_funcids()
 {
 	object_exists = loader_yyc_get_funcid("object_exists");
@@ -30,6 +35,7 @@ void __setup_funcids()
 	sprite_get_name = loader_yyc_get_funcid("sprite_get_name");
 	sprite_add = loader_yyc_get_funcid("sprite_add");
 	sprite_assign = loader_yyc_get_funcid("sprite_assign");
+	sprite_duplicate = loader_yyc_get_funcid("sprite_duplicate");
 	sprite_exists = loader_yyc_get_funcid("sprite_exists");
 	sprite_get_number = loader_yyc_get_funcid("sprite_get_number");
 	sprite_get_uvs = loader_yyc_get_funcid("sprite_get_uvs");
@@ -59,7 +65,17 @@ bool is_digits(std::string& str)
 
 	return true;
 }
-
+void reset_sprites()
+{
+	for (auto& [sprite_id, sprite_asset] : original_sprites)
+	{
+		GMLVar* args[] = { sprite_id, sprite_asset };
+		loader_yyc_call_func(sprite_assign, 2, args);
+		delete sprite_id;
+		delete sprite_asset;
+	}
+	original_sprites.clear();
+}
 void overwrite_sprite(const std::filesystem::path& entry)
 {
 	if (!ready)
@@ -90,6 +106,9 @@ void overwrite_sprite(const std::filesystem::path& entry)
 
 			GMLVar* xoffset = loader_yyc_call_func(sprite_get_xoffset, 1, args);
 			GMLVar* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
+
+			GMLVar* oldsprite = loader_yyc_call_func(sprite_duplicate, 1, args);
+			original_sprites[sprite_id] = oldsprite;
 
 			if (file_stem.contains("_strip"))
 			{

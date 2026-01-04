@@ -4,6 +4,7 @@
 
 void __setup_funcids();
 
+void reset_sprites();
 void overwrite_sprite(const std::filesystem::path& entry);
 
 struct GMLVar;
