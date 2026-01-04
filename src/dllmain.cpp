@@ -13,7 +13,7 @@ DWORD WINAPI entry(LPVOID hModule)
 	loader_fetch_mod_repository(MOD_NAME);
 
 	// add a callback to be called whenever a frame is rendered
-	loader_add_present_callback(dx_present);
+	//loader_add_present_callback(dx_present);
 
 	// add a callback to be called whenever rival's window attempts to process an event
 	loader_add_wndproc_callback(handle_wndproc);
