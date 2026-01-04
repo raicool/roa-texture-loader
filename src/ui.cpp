@@ -1,13 +1,14 @@
 #include "ui.h"
 
 #include "mod.h"
-#include "sprite.h"
+#include "packlist.h"
 
 #include <loader/d3d11_hook.h>
 
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 
+#include <memory>
 
 void setup_ui()
 {
@@ -22,32 +23,22 @@ void render_ui()
 {
 	if (ImGui::Begin(MOD_NAME))
 	{
-		ImGui::Text("Hello!");
-		if (ImGui::InputInt("sprite_id", &sprite_id))
-		{
-			sprite = get_sprite_name(sprite_id);
-		}
+		packlist* pack_list = get_packlist();
 
-		if (sprite)
+		if (pack_list)
 		{
-			ImGui::Text("%s", sprite->getCString());
-
-			GMLVar* texture = get_sprite_texture(sprite_id);
-			
-			if (texture->type == GML_TYPE_POINTER)
+			for (const std::shared_ptr<pack>& _pack : *pack_list)
 			{
-				ImGui::Text("0x%08x", texture->type);
-
-				GMLVar* width = get_sprite_width(sprite_id);
-				GMLVar* height = get_sprite_height(sprite_id);
-
-				ImGui::InputDouble("width", &width->valueReal);
-				ImGui::InputDouble("height", &height->valueReal);
-
-				//ImGui::Image(texture->valuePointer, { (float)width->valueReal, (float)height->valueReal });
+				render_packdata(_pack);
 			}
 		}
 
 		ImGui::End();
 	}
+}
+
+void render_packdata(const std::shared_ptr<pack>& packdata)
+{
+	ImGui::Image(packdata->pack_img, { 32, 32 });
+	ImGui::Text("%s", packdata->name);
 }

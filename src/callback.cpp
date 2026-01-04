@@ -1,7 +1,7 @@
 #include "callback.h"
 
 #include "ui.h"
-#include "sprite.h"
+#include "packlist.h"
 
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
@@ -16,7 +16,7 @@ void handle_wndproc(
 {
 	if (uMsg == WM_KEYDOWN && wParam == VK_F1)
 	{
-		overwrite_sprites();
+		apply_packs();
 	}
 
 	LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

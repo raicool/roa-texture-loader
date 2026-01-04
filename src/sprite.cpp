@@ -60,62 +60,55 @@ bool is_digits(std::string& str)
 	return true;
 }
 
-void overwrite_sprites()
+void overwrite_sprite(const std::filesystem::path& entry)
 {
 	if (!ready)
 	{
 		__setup_funcids();
 	}
 
-	std::filesystem::create_directory(SPRITE_DIRECTORY);
-
-	for (auto entry : std::filesystem::directory_iterator(SPRITE_DIRECTORY))
+	if (entry.extension() == ".png")
 	{
-		if (entry.is_directory()) continue;
+		std::string file_stem = entry.stem().generic_string();
+		std::string file_path = entry.generic_string();
+		std::string sprite_name_str = file_stem.substr(0, file_stem.find("_strip"));
+		GMLVar sprite_name = GMLVar(sprite_name_str);
+		GMLVar* args[] = { &sprite_name };
+		GMLVar* sprite_id = loader_yyc_call_func(asset_get_index, 1, args);
 
-		std::filesystem::path path = entry.path();
-		if (path.extension() == ".png")
+		args[0] = sprite_id;
+		if (loader_yyc_call_func(sprite_exists, 1, args)->truthy())
 		{
-			std::string filename = path.stem().generic_string();
-			std::string sprite_name_str = filename.substr(0, filename.find("_strip"));
-			GMLVar sprite_name = GMLVar(sprite_name_str);
-			GMLVar* args[] = { &sprite_name };
-			GMLVar* sprite_id = loader_yyc_call_func(asset_get_index, 1, args);
+			// i really have to do this
+			GMLVar zero = GMLVar();
+			zero.type = GML_TYPE_INT32;
+			zero.valueInt32 = 0;
 
-			args[0] = sprite_id;
-			if (loader_yyc_call_func(sprite_exists, 1, args)->truthy())
+			GMLVar frames = GMLVar();
+			frames.type = GML_TYPE_INT32;
+			frames.valueInt32 = 1;
+
+			GMLVar* xoffset = loader_yyc_call_func(sprite_get_xoffset, 1, args);
+			GMLVar* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
+
+			if (file_stem.contains("_strip"))
 			{
-				// i really have to do this
-				GMLVar zero = GMLVar();
-				zero.type = GML_TYPE_INT32;
-				zero.valueInt32 = 0;
+				std::string frames_str = file_stem.substr(file_stem.find("_strip") + 6, file_stem.size());
 
-				GMLVar frames = GMLVar();
-				frames.type = GML_TYPE_INT32;
-				frames.valueInt32 = 1;
-
-				GMLVar* xoffset = loader_yyc_call_func(sprite_get_xoffset, 1, args);
-				GMLVar* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
-
-				if (filename.contains("_strip"))
+				if (is_digits(frames_str))
 				{
-					std::string frames_str = filename.substr(filename.find("_strip") + 6, filename.size());
-
-					if (is_digits(frames_str))
-					{
-						frames.valueInt32 = std::stoi(frames_str);
-					}
+					frames.valueInt32 = std::stoi(frames_str);
 				}
-
-				GMLVar sprite_filename = GMLVar(SPRITE_DIRECTORY + filename + ".png");
-				GMLVar* argsSpriteAdd[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
-				GMLVar* newSprite = loader_yyc_call_func(sprite_add, 6, argsSpriteAdd);
-					
-				GMLVar* argsSpriteAssign[] = { sprite_id, newSprite };
-				loader_yyc_call_func(sprite_assign, 2, argsSpriteAssign);
-
-				loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
 			}
+
+			GMLVar sprite_filename = GMLVar(file_path);
+			GMLVar* argsSpriteAdd[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
+			GMLVar* newSprite = loader_yyc_call_func(sprite_add, 6, argsSpriteAdd);
+					
+			GMLVar* argsSpriteAssign[] = { sprite_id, newSprite };
+			loader_yyc_call_func(sprite_assign, 2, argsSpriteAssign);
+
+			loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
 		}
 	}
 }

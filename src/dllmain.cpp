@@ -2,18 +2,22 @@
 
 #include "mod.h"
 #include "ui.h"
+#include "packlist.h"
 
 #include <loader/d3d11_hook.h>
 
 DWORD WINAPI entry(LPVOID hModule)
 {
 	setup_ui();
-	overwrite_sprites();
+	
+	update_packlist();
+	apply_packs();
 
-	loader_fetch_mod_repository(std::string(MOD_NAME));
+	std::string mod_name = MOD_NAME;
+	loader_fetch_mod_repository(mod_name);
 
 	// add a callback to be called whenever a frame is rendered
-	//loader_add_present_callback(dx_present);
+	loader_add_present_callback(dx_present);
 
 	// add a callback to be called whenever rival's window attempts to process an event
 	loader_add_wndproc_callback(handle_wndproc);
