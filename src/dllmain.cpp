@@ -10,7 +10,7 @@ DWORD WINAPI entry(LPVOID hModule)
 	setup_ui();
 	overwrite_sprites();
 
-	loader_fetch_mod_repository(MOD_NAME);
+	loader_fetch_mod_repository(std::string(MOD_NAME));
 
 	// add a callback to be called whenever a frame is rendered
 	//loader_add_present_callback(dx_present);
