@@ -35,7 +35,7 @@ int texture_get_texel_width;
 int texture_get_texel_height;
 
 std::unordered_map<double, GMLVar*> original_sprites;
-std::unordered_map<double, GMLVar*> new_sprites;
+//std::unordered_map<double, GMLVar*> new_sprites;
 
 void __setup_funcids()
 {
@@ -91,15 +91,15 @@ void reset_sprites()
 		delete sprite_asset;
 	}
 
-	for (auto& [sprite_id, sprite_asset] : new_sprites)
-	{
-		GMLVar* delete_args[] = { sprite_asset };
-		loader_yyc_call_func(sprite_delete, 1, delete_args);
-		delete sprite_asset;
-	}
+// 	for (auto& [sprite_id, sprite_asset] : new_sprites)
+// 	{
+// 		GMLVar* delete_args[] = { sprite_asset };
+// 		loader_yyc_call_func(sprite_delete, 1, delete_args);
+// 		delete sprite_asset;
+// 	}
 
 	original_sprites.clear();
-	new_sprites.clear();
+//	new_sprites.clear();
 }
 
 void overwrite_sprite(const std::filesystem::path& entry)
@@ -154,20 +154,27 @@ void overwrite_sprite(const std::filesystem::path& entry)
 			}
 
 			// delete previous custom texture in memory for sprite if one exists
-			if (new_sprites.contains(sprite_id->valueReal))
-			{
-				GMLVar* delete_args[] = { new_sprites[sprite_id->valueReal] };
-				loader_yyc_call_func(sprite_delete, 1, delete_args);
-				delete new_sprites[sprite_id->valueReal];
-			}
+// 			if (new_sprites.contains(sprite_id->valueReal))
+// 			{
+// 				GMLVar* delete_args[] = { new_sprites[sprite_id->valueReal] };
+// 				loader_yyc_call_func(sprite_delete, 1, delete_args);
+// 				delete new_sprites[sprite_id->valueReal];
+// 			}
 
 			GMLVar sprite_filename = GMLVar(file_path);
-			GMLVar* args_replace[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
-			GMLVar* sprite_new = loader_yyc_call_func(sprite_add, 6, args_replace);
+// 			GMLVar* args_replace[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
+// 			GMLVar* sprite_new = loader_yyc_call_func(sprite_add, 6, args_replace);
 
-			new_sprites[sprite_id->valueReal] = sprite_new;
-			GMLVar* args_assign[] = { sprite_id, sprite_new };
-			loader_yyc_call_func(sprite_assign, 2, args_assign);
+			GMLVar* args_replace[] = { sprite_id, &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
+			GMLVar* sprite_new = loader_yyc_call_func(sprite_replace, 7, args_replace);
+
+//			new_sprites[sprite_id->valueReal] = sprite_new;
+// 			GMLVar* args_assign[] = { sprite_id, sprite_new };
+// 			loader_yyc_call_func(sprite_assign, 2, args_assign);
+// 
+// 			GMLVar* args_delete[] = { sprite_new };
+// 			loader_yyc_call_func(sprite_delete, 1, args_assign);
+// 			delete sprite_new;
 			delete xoffset;
 			delete yoffset;
 
