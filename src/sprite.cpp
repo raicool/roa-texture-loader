@@ -123,8 +123,15 @@ void overwrite_sprite(const std::filesystem::path& entry)
 			GMLVar* xoffset = loader_yyc_call_func(sprite_get_xoffset, 1, args);
 			GMLVar* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
 
-			GMLVar* oldsprite = loader_yyc_call_func(sprite_duplicate, 1, args);
-			original_sprites[sprite_id->valueReal] = oldsprite;
+			// TODO: duplicating sprites is extremely buggy and will 
+			// often crash with no way of debugging :)
+			// so idk what to do here
+			
+// 			if (!original_sprites.contains(sprite_id->valueReal))
+// 			{
+// 				GMLVar* oldsprite = loader_yyc_call_func(sprite_duplicate, 1, args);
+// 				original_sprites[sprite_id->valueReal] = oldsprite;
+// 			}
 
 			if (file_stem.contains("_strip"))
 			{
@@ -139,7 +146,7 @@ void overwrite_sprite(const std::filesystem::path& entry)
 			// delete previous custom texture in memory for sprite if one exists
 			if (new_sprites.contains(sprite_id->valueReal))
 			{
-				GMLVar* delete_args[] = { sprite_id };
+				GMLVar* delete_args[] = { new_sprites[sprite_id->valueReal] };
 				loader_yyc_call_func(sprite_delete, 1, delete_args);
 				delete new_sprites[sprite_id->valueReal];
 			}
@@ -154,7 +161,7 @@ void overwrite_sprite(const std::filesystem::path& entry)
 			delete xoffset;
 			delete yoffset;
 
-			loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
+			//loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
 		}
 		delete sprite_id;
 	}
