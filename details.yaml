@@ -1,6 +1,6 @@
 name: roa-texture-loader
 # mod loader version that this mod supports
-loader-version: 0.0.2
+loader-version: 1.0.2
 description: custom texture loader
 # url of repository to fetch released to update from
 repository: https://github.com/raicool/roa-texture-loader
