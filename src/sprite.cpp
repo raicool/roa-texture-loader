@@ -5,6 +5,9 @@
 #include <filesystem>
 #include <unordered_map>
 
+#include <yaml-cpp/yaml.h>
+#include <yaml_helper.h>
+
 bool ready;
 
 int object_exists;
@@ -20,6 +23,9 @@ int sprite_get_number;
 int sprite_get_uvs;
 int sprite_get_xoffset;
 int sprite_get_yoffset;
+int sprite_get_speed_type;
+int sprite_set_offset;
+int sprite_set_speed;
 int sprite_get_texture;
 int sprite_get_width;
 int sprite_get_height;
@@ -46,6 +52,9 @@ void __setup_funcids()
 	sprite_get_uvs = loader_yyc_get_funcid("sprite_get_uvs");
 	sprite_get_xoffset = loader_yyc_get_funcid("sprite_get_xoffset");
 	sprite_get_yoffset = loader_yyc_get_funcid("sprite_get_yoffset");
+	sprite_get_speed_type = loader_yyc_get_funcid("sprite_get_speed_type");
+	sprite_set_offset = loader_yyc_get_funcid("sprite_set_offset");
+	sprite_set_speed = loader_yyc_get_funcid("sprite_set_speed");
 	sprite_get_texture = loader_yyc_get_funcid("sprite_get_texture");
 	sprite_get_width = loader_yyc_get_funcid("sprite_get_width");
 	sprite_get_height = loader_yyc_get_funcid("sprite_get_height");
@@ -92,6 +101,7 @@ void reset_sprites()
 	original_sprites.clear();
 	new_sprites.clear();
 }
+
 void overwrite_sprite(const std::filesystem::path& entry)
 {
 	if (!ready)
@@ -161,9 +171,61 @@ void overwrite_sprite(const std::filesystem::path& entry)
 			delete xoffset;
 			delete yoffset;
 
-			//loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
+			loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
 		}
 		delete sprite_id;
+	}
+}
+
+void overwrite_sprite_properties(const std::filesystem::path& pack_dir)
+{
+	if (!file_exists(pack_dir.generic_string() + "/spr_prop.ini"))
+	{
+		// no spr_prop file found, return quietely
+		return;
+	}
+
+	const YAML::Node spr_prop = YAML::LoadFile(pack_dir.generic_string() + "/spr_prop.ini");
+
+	for (YAML::const_iterator it = spr_prop.begin(); it != spr_prop.end(); ++it)
+	{
+		loader_log_debug(it->first.as<std::string>());
+
+		GMLVar sprite_name = GMLVar(it->first.as<std::string>());
+		GMLVar* asset_get_index_args[] = { &sprite_name };
+
+		GMLVar* sprite_id = loader_yyc_call_func(asset_get_index, 1, asset_get_index_args);
+		GMLVar* sprite_exists_args[] = { sprite_id };
+		if (loader_yyc_call_func(sprite_exists, 1, sprite_exists_args)->truthy())
+		{
+			GMLVar xoffset = GMLVar(0.0f);
+			GMLVar yoffset = GMLVar(0.0f);
+			GMLVar speed = GMLVar(0.0f);
+
+			if (it->second["xoffset"].IsDefined())
+			{
+				xoffset = GMLVar(it->second["xoffset"].as<double>());
+			}
+
+			if (it->second["yoffset"].IsDefined())
+			{
+				yoffset = GMLVar(it->second["yoffset"].as<double>());
+			}
+
+			if (it->second["speed"].IsDefined())
+			{
+				speed = GMLVar(it->second["speed"].as<double>());
+			}
+			GMLVar* s_type = loader_yyc_call_func(sprite_get_speed_type, 1, sprite_exists_args);
+			GMLVar* sprite_set_offset_args[] = { sprite_id, &xoffset, &yoffset };
+			GMLVar* sprite_set_speed_args[] = { sprite_id, &speed, s_type};
+
+			loader_yyc_call_func(sprite_set_offset, 3, sprite_set_offset_args);
+			loader_yyc_call_func(sprite_set_speed, 3, sprite_set_speed_args);
+
+			delete sprite_id;
+			delete s_type;
+		}
 	}
 }
 

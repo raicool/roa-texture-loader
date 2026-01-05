@@ -41,6 +41,7 @@ void apply_packs()
 			{
 				overwrite_sprite(_sprite_file.path());
 			}
+			overwrite_sprite_properties(_pack->pack_path);
 		}
 	}
 }

@@ -1,5 +1,7 @@
 #include "pack.h"
 
+#include "yaml_helper.h"
+
 #include <loader/log.h>
 #include <loader/d3d11_hook.h>
 
@@ -66,31 +68,40 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 
 	std::shared_ptr<pack> _pack = std::make_shared<pack>();
 
-	const YAML::Node config = YAML::LoadFile(pack_dir.generic_string() + "/pack.ini");
-
-	std::string err_string = std::format("unable to open texture pack: {}", pack_dir.generic_string());
-	if (!config)
+	if (file_exists(pack_dir.generic_string() + "/pack.ini"))
 	{
-		err_string.append("\n\t^~~~~~ pack.ini could not be opened properly. does it exist?");
-		loader_log_error(err_string);
-		return nullptr;
+		const YAML::Node config = YAML::LoadFile(pack_dir.generic_string() + "/pack.ini");
+
+		std::string err_string = std::format("unable to open texture pack: {}", pack_dir.generic_string());
+		if (!config)
+		{
+			err_string.append("\n\t^~~~~~ pack.ini could not be opened properly. does it exist?");
+			loader_log_error(err_string);
+			return nullptr;
+		}
+
+		// texture pack name
+		_pack->name = get_nodeleaf_safe(
+			config,
+			"pack-name",
+			"???").as<std::string>();
+
+		_pack->description = get_nodeleaf_safe(
+			config,
+			"pack-description",
+			"missing description").as<std::string>();
+
+		_pack->author = get_nodeleaf_safe(
+			config,
+			"author",
+			"").as<std::string>();
 	}
-
-	// texture pack name
-	_pack->name = get_nodeleaf_safe(
-		config,
-		"pack-name",
-		"???").as<std::string>();
-
-	_pack->description = get_nodeleaf_safe(
-		config,
-		"pack-description",
-		"missing description").as<std::string>();
-
-	_pack->author = get_nodeleaf_safe(
-		config,
-		"author",
-		"").as<std::string>();
+	else
+	{
+		_pack->name = "???";
+		_pack->description = "missing description";
+		_pack->author = "";
+	}
 
 	std::basic_ifstream<uint8_t> pack_img(pack_dir.generic_string() + "/pack.png", std::ios::binary);
 
@@ -111,6 +122,7 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 		// TODO: placeholder pack img
 	}
 
+	_pack->pack_path = pack_dir.generic_string();
 	_pack->sprite_path = pack_dir.generic_string() + "/spr/";
 	_pack->shader_path = pack_dir.generic_string() + "/shader/";
 
