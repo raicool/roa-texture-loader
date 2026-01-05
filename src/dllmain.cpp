@@ -7,10 +7,15 @@
 
 #include <loader/d3d11_hook.h>
 
+using namespace std::literals::chrono_literals;
+
 DWORD WINAPI entry(LPVOID hModule)
 {
 	setup_ui();
 	
+	// lazy
+	std::this_thread::sleep_for(1s);
+
 	update_packlist();
 	apply_packs();
 

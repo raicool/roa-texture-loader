@@ -11,6 +11,8 @@ int object_exists;
 int asset_get_index;
 int sprite_get_name;
 int sprite_add;
+int sprite_replace;
+int sprite_delete;
 int sprite_assign;
 int sprite_duplicate;
 int sprite_exists;
@@ -26,7 +28,8 @@ int texture_get_height;
 int texture_get_texel_width;
 int texture_get_texel_height;
 
-std::unordered_map<GMLVar*, GMLVar*> original_sprites;
+std::unordered_map<double, GMLVar*> original_sprites;
+std::unordered_map<double, GMLVar*> new_sprites;
 
 void __setup_funcids()
 {
@@ -34,6 +37,8 @@ void __setup_funcids()
 	asset_get_index = loader_yyc_get_funcid("asset_get_index");
 	sprite_get_name = loader_yyc_get_funcid("sprite_get_name");
 	sprite_add = loader_yyc_get_funcid("sprite_add");
+	sprite_replace = loader_yyc_get_funcid("sprite_replace");
+	sprite_delete = loader_yyc_get_funcid("sprite_delete");
 	sprite_assign = loader_yyc_get_funcid("sprite_assign");
 	sprite_duplicate = loader_yyc_get_funcid("sprite_duplicate");
 	sprite_exists = loader_yyc_get_funcid("sprite_exists");
@@ -54,10 +59,10 @@ void __setup_funcids()
 
 bool is_digits(std::string& str)
 {
-	for (char ch : str) 
+	for (char ch : str)
 	{
 		int v = ch; // ASCII Val converted
-		if (!(ch >= 48 && ch <= 57)) 
+		if (!(ch >= 48 && ch <= 57))
 		{
 			return false;
 		}
@@ -69,12 +74,23 @@ void reset_sprites()
 {
 	for (auto& [sprite_id, sprite_asset] : original_sprites)
 	{
-		GMLVar* args[] = { sprite_id, sprite_asset };
+		GMLVar sprite_id_var = GMLVar(sprite_id);
+		GMLVar* args[] = { &sprite_id_var, sprite_asset };
+		GMLVar* delete_args[] = { sprite_asset };
 		loader_yyc_call_func(sprite_assign, 2, args);
-		delete sprite_id;
+		loader_yyc_call_func(sprite_delete, 1, delete_args);
 		delete sprite_asset;
 	}
+
+	for (auto& [sprite_id, sprite_asset] : new_sprites)
+	{
+		GMLVar* delete_args[] = { sprite_asset };
+		loader_yyc_call_func(sprite_delete, 1, delete_args);
+		delete sprite_asset;
+	}
+
 	original_sprites.clear();
+	new_sprites.clear();
 }
 void overwrite_sprite(const std::filesystem::path& entry)
 {
@@ -108,7 +124,7 @@ void overwrite_sprite(const std::filesystem::path& entry)
 			GMLVar* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
 
 			GMLVar* oldsprite = loader_yyc_call_func(sprite_duplicate, 1, args);
-			original_sprites[sprite_id] = oldsprite;
+			original_sprites[sprite_id->valueReal] = oldsprite;
 
 			if (file_stem.contains("_strip"))
 			{
@@ -120,15 +136,27 @@ void overwrite_sprite(const std::filesystem::path& entry)
 				}
 			}
 
+			// delete previous custom texture in memory for sprite if one exists
+			if (new_sprites.contains(sprite_id->valueReal))
+			{
+				GMLVar* delete_args[] = { sprite_id };
+				loader_yyc_call_func(sprite_delete, 1, delete_args);
+				delete new_sprites[sprite_id->valueReal];
+			}
+
 			GMLVar sprite_filename = GMLVar(file_path);
-			GMLVar* argsSpriteAdd[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
-			GMLVar* newSprite = loader_yyc_call_func(sprite_add, 6, argsSpriteAdd);
-					
-			GMLVar* argsSpriteAssign[] = { sprite_id, newSprite };
-			loader_yyc_call_func(sprite_assign, 2, argsSpriteAssign);
+			GMLVar* args_replace[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
+			GMLVar* sprite_new = loader_yyc_call_func(sprite_add, 6, args_replace);
+
+			new_sprites[sprite_id->valueReal] = sprite_new;
+			GMLVar* args_assign[] = { sprite_id, sprite_new };
+			loader_yyc_call_func(sprite_assign, 2, args_assign);
+			delete xoffset;
+			delete yoffset;
 
 			loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
 		}
+		delete sprite_id;
 	}
 }
 
