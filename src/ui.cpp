@@ -10,8 +10,9 @@
 #include <imgui_impl_win32.h>
 
 #include <memory>
+#include <config.h>
 
-void setup_ui()
+void __setup_ui()
 {
 	ImGui::CreateContext();
 
@@ -24,6 +25,26 @@ void render_ui()
 {
 	if (ImGui::Begin(MOD_NAME))
 	{
+		if (ImGui::BeginMenuBar())
+		{
+			config_entry* entry = get_config_entry(SAVE_ORIGINAL_SPRITES);
+			if (ImGui::MenuItem("Save Original Sprites", 0, false, entry->value))
+			{
+				set_config_entry(SAVE_ORIGINAL_SPRITES, !entry->value);
+			}
+
+			if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+			{
+				ImGui::BeginTooltip();
+				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+				ImGui::TextUnformatted(entry->description.c_str());
+				ImGui::PopTextWrapPos();
+				ImGui::EndTooltip();
+			}
+
+			ImGui::EndMenuBar();
+		}
+
 		if (ImGui::Button("Reload Textures"))
 		{
 			apply_packs();

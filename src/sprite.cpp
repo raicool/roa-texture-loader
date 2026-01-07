@@ -1,6 +1,8 @@
 #include "sprite.h"
 
-#include "loader/yyc.h"
+#include "func_ids.h"
+
+#include <loader/yyc.h>
 
 #include <filesystem>
 #include <unordered_map>
@@ -8,63 +10,8 @@
 #include <yaml-cpp/yaml.h>
 #include <yaml_helper.h>
 
-bool ready;
-
-int object_exists;
-int asset_get_index;
-int sprite_get_name;
-int sprite_add;
-int sprite_replace;
-int sprite_delete;
-int sprite_assign;
-int sprite_duplicate;
-int sprite_exists;
-int sprite_get_number;
-int sprite_get_uvs;
-int sprite_get_xoffset;
-int sprite_get_yoffset;
-int sprite_get_speed_type;
-int sprite_set_offset;
-int sprite_set_speed;
-int sprite_get_texture;
-int sprite_get_width;
-int sprite_get_height;
-int texture_get_width;
-int texture_get_height;
-int texture_get_texel_width;
-int texture_get_texel_height;
-
 std::unordered_map<double, GMLVar*> original_sprites;
 //std::unordered_map<double, GMLVar*> new_sprites;
-
-void __setup_funcids()
-{
-	object_exists = loader_yyc_get_funcid("object_exists");
-	asset_get_index = loader_yyc_get_funcid("asset_get_index");
-	sprite_get_name = loader_yyc_get_funcid("sprite_get_name");
-	sprite_add = loader_yyc_get_funcid("sprite_add");
-	sprite_replace = loader_yyc_get_funcid("sprite_replace");
-	sprite_delete = loader_yyc_get_funcid("sprite_delete");
-	sprite_assign = loader_yyc_get_funcid("sprite_assign");
-	sprite_duplicate = loader_yyc_get_funcid("sprite_duplicate");
-	sprite_exists = loader_yyc_get_funcid("sprite_exists");
-	sprite_get_number = loader_yyc_get_funcid("sprite_get_number");
-	sprite_get_uvs = loader_yyc_get_funcid("sprite_get_uvs");
-	sprite_get_xoffset = loader_yyc_get_funcid("sprite_get_xoffset");
-	sprite_get_yoffset = loader_yyc_get_funcid("sprite_get_yoffset");
-	sprite_get_speed_type = loader_yyc_get_funcid("sprite_get_speed_type");
-	sprite_set_offset = loader_yyc_get_funcid("sprite_set_offset");
-	sprite_set_speed = loader_yyc_get_funcid("sprite_set_speed");
-	sprite_get_texture = loader_yyc_get_funcid("sprite_get_texture");
-	sprite_get_width = loader_yyc_get_funcid("sprite_get_width");
-	sprite_get_height = loader_yyc_get_funcid("sprite_get_height");
-	texture_get_width = loader_yyc_get_funcid("texture_get_width");
-	texture_get_height = loader_yyc_get_funcid("texture_get_height");
-	texture_get_texel_width = loader_yyc_get_funcid("texture_get_texel_width");
-	texture_get_texel_height = loader_yyc_get_funcid("texture_get_texel_height");
-
-	ready = true;
-}
 
 bool is_digits(std::string& str)
 {
@@ -102,7 +49,7 @@ void reset_sprites()
 //	new_sprites.clear();
 }
 
-void overwrite_sprite(const std::filesystem::path& entry)
+void load_sprite(const std::filesystem::path& entry)
 {
 	if (!ready)
 	{
@@ -114,6 +61,7 @@ void overwrite_sprite(const std::filesystem::path& entry)
 		std::string file_stem = entry.stem().generic_string();
 		std::string file_path = entry.generic_string();
 		std::string sprite_name_str = file_stem.substr(0, file_stem.find("_strip"));
+
 		GMLVar sprite_name = GMLVar(sprite_name_str);
 		GMLVar* args[] = { &sprite_name };
 		GMLVar* sprite_id = loader_yyc_call_func(asset_get_index, 1, args);

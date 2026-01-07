@@ -1,6 +1,7 @@
 #include "packlist.h"
 
 #include "pack.h"
+#include "sound.h"
 #include "sprite.h"
 
 #include <filesystem>
@@ -37,11 +38,22 @@ void apply_packs()
 	{
 		if (_pack->enabled)
 		{
-			for (const auto& _sprite_file : std::filesystem::directory_iterator(_pack->sprite_path))
+			// load sprites
+			if (std::filesystem::exists(_pack->sprite_path))
 			{
-				overwrite_sprite(_sprite_file.path());
+				for (const auto& _sprite_file : std::filesystem::directory_iterator(_pack->sprite_path))
+				{
+					load_sprite(_sprite_file.path());
+				}
+				overwrite_sprite_properties(_pack->pack_path);
 			}
-			overwrite_sprite_properties(_pack->pack_path);
+
+			// load sounds
+			if (std::filesystem::exists(_pack->sound_path))
+				for (const auto& _sound_file : std::filesystem::directory_iterator(_pack->sound_path))
+				{
+					load_ogg(_sound_file.path());
+				}
 		}
 	}
 }

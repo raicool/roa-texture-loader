@@ -2,10 +2,8 @@
 
 #include <filesystem>
 
-void __setup_funcids();
-
 void reset_sprites();
-void overwrite_sprite(const std::filesystem::path& entry);
+void load_sprite(const std::filesystem::path& entry);
 void overwrite_sprite_properties(const std::filesystem::path& pack_dir);
 
 struct GMLVar;

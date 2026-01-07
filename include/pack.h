@@ -15,6 +15,7 @@ struct pack
 
 	ID3D11ShaderResourceView* pack_img; //< pack image to be used in the texture pack menu
 
+	std::filesystem::path sound_path; //< path to all sound files for texture pack
 	std::filesystem::path sprite_path; //< path to all sprite files for texture pack
 	std::filesystem::path shader_path; //< path to all shader files for texture pack
 	std::filesystem::path pack_path; //< path to texture pack

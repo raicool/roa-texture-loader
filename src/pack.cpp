@@ -123,6 +123,7 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 	}
 
 	_pack->pack_path = pack_dir.generic_string();
+	_pack->sound_path = pack_dir.generic_string() + "/sound/";
 	_pack->sprite_path = pack_dir.generic_string() + "/spr/";
 	_pack->shader_path = pack_dir.generic_string() + "/shader/";
 

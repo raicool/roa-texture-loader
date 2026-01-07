@@ -1,9 +1,12 @@
 #include "callback.h"
 
+#include "func_ids.h"
 #include "mod.h"
-#include "ui.h"
-#include "packlist.h"
 #include "pack.h"
+#include "packlist.h"
+#include "sound.h"
+#include "sprite.h"
+#include "ui.h"
 
 #include <loader/d3d11_hook.h>
 
@@ -11,11 +14,13 @@ using namespace std::literals::chrono_literals;
 
 DWORD WINAPI entry(LPVOID hModule)
 {
-	setup_ui();
-	
-	// lazy
-//	std::this_thread::sleep_for(3s);
+	// setup hooks/function ids
+	__setup_funcids();
+//	__setup_sprite();
+	__setup_sound();
+	__setup_ui();
 
+	// read from custom_sprites directory and apply sprite overwrites
 	update_packlist();
 	apply_packs();
 
