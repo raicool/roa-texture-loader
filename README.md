@@ -15,12 +15,12 @@ custom texture loader for rivals of aether 1
 requires Visual Studio 2022 in order to be built (older visual studio versions most likely work but i have not tested them)
 
 1. clone the repository as well as submodules:
-```
+```sh
 	git clone https://github.com/raicool/roa-texture-loader --recurse-submodules
 	cd roa-texture-loader
 ```
 2. using Visual Studio's x86 Dev command prompt *vcvars32.bat* run
-```
+```sh
 	cmake -G "Ninja" -DCMAKE_SYSTEM_PROCESSOR=i386 -B bin/
 	ninja -C bin/
 ```
