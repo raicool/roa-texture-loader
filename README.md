@@ -26,4 +26,4 @@ requires Visual Studio 2022 in order to be built (older visual studio versions m
 ```
 3. copy the dll `bin/roa-texture-loader-XXXXXX-MSVC.dll` into the mods directory of rivals of aether, e.g `C:/Program Files (x86)/Steam/steamapps/common/Rivals of Aether/mods/`
 	- if the mods directory doesnt already exists, create one
-	- copy the roa-hook folder into the mods folder as well
+	- copy the roa-texture-loader folder into the mods folder as well
