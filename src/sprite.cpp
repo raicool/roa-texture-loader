@@ -137,11 +137,11 @@ void overwrite_sprite(const std::filesystem::path& entry)
 			// often crash with no way of debugging :)
 			// so idk what to do here
 			
-			if (!original_sprites.contains(sprite_id->valueReal))
-			{
-				GMLVar* oldsprite = loader_yyc_call_func(sprite_duplicate, 1, args);
-				original_sprites[sprite_id->valueReal] = oldsprite;
-			}
+// 			if (!original_sprites.contains(sprite_id->valueReal))
+// 			{
+// 				GMLVar* oldsprite = loader_yyc_call_func(sprite_duplicate, 1, args);
+// 				original_sprites[sprite_id->valueReal] = oldsprite;
+// 			}
 
 			if (file_stem.contains("_strip"))
 			{
@@ -225,7 +225,7 @@ void overwrite_sprite_properties(const std::filesystem::path& pack_dir)
 			}
 			GMLVar* s_type = loader_yyc_call_func(sprite_get_speed_type, 1, sprite_exists_args);
 			GMLVar* sprite_set_offset_args[] = { sprite_id, &xoffset, &yoffset };
-			GMLVar* sprite_set_speed_args[] = { sprite_id, &speed, s_type };
+			GMLVar* sprite_set_speed_args[] = { sprite_id, &speed, s_type};
 
 			loader_yyc_call_func(sprite_set_offset, 3, sprite_set_offset_args);
 			loader_yyc_call_func(sprite_set_speed, 3, sprite_set_speed_args);
