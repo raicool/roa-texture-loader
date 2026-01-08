@@ -126,7 +126,7 @@ void load_sprite(const std::filesystem::path& entry)
 			delete xoffset;
 			delete yoffset;
 
-			loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
+//			loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
 		}
 		delete sprite_id;
 	}
