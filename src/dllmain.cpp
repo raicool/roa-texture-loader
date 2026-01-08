@@ -9,18 +9,8 @@
 #include "ui.h"
 
 #include <loader/d3d11_hook.h>
-#include <GMLScriptEnv/event.h>
 
 using namespace std::literals::chrono_literals;
-
-
-void step(int event_subtype)
-{
-	GMLVar viewport = 0;
-	GMLVar vwidth = 1800;
-	GMLVar* args[] = { &viewport, &vwidth };
-	loader_yyc_call_func("view_set_wport", 2, args);
-}
 
 DWORD WINAPI entry(LPVOID hModule)
 {
@@ -30,8 +20,6 @@ DWORD WINAPI entry(LPVOID hModule)
 	__setup_sound();
 	__setup_ui();
 
-	GMLHookGlobalStep(step);
-	
 	// read from custom_sprites directory and apply sprite overwrites
 	update_packlist();
 	apply_packs();
