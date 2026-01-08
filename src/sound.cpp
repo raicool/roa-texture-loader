@@ -10,46 +10,50 @@
 
 std::unordered_map<double, GMLVar*> loaded_sound;
 
-
+//
+//	args
+//	audio_play_sound(index, priority, loop, [gain], [offset], [pitch], [listener_mask]);
+//
 void (*audio_play_sound_original)(
 	GMLVar*,
 	void*,
 	void*,
 	uint32_t,
+	GMLVar*,
+	GMLVar*,
+	GMLVar*,
+	GMLVar*,
+	GMLVar*,
+	GMLVar*,
 	GMLVar*
 	);
-
-//
-//	args
-//	audio_play_sound(index, priority, loop, [gain], [offset], [pitch], [listener_mask]);
-//
 void audio_play_sound_detour(
 	GMLVar* _unknown_1, 
 	void* _unknown_2, 
 	void* _unknown_3,
 	uint32_t arg_count, 
-	GMLVar* args
+	GMLVar* index, 
+	GMLVar* priority, 
+	GMLVar* loop,
+	GMLVar* gain,
+	GMLVar* offset,
+	GMLVar* pitch,
+	GMLVar* listener_mask
 )
 {
 	if (loaded_sound.size() <= 0)
 		goto leave_detour;
 
-	if (args[0].type == GML_TYPE_REAL)
+	if (index->type == GML_TYPE_REAL)
 	{
-		if (loaded_sound.contains(args[0].valueReal))
+		if (loaded_sound.contains(index->valueReal))
 		{
-			args[0].valueReal = loaded_sound[(uint32_t)args[0].valueReal]->valueReal;
-		}
-
-		if (arg_count >= 5 && args[4].type == GML_TYPE_REAL)
-		{
-			args[4].valueReal = 0;
-			loader_log_debug("audio_play_sound_detour(): set offset to 0");
+			index->valueReal = loaded_sound[(uint32_t)index->valueReal]->valueReal;
 		}
 	}
 	else
 	{
-		loader_log_warn("audio_play_sound_detour(): index.type was not GML_TYPE_REAL");
+		loader_log_warn("audio_play_sound_detour(): index->type was not GML_TYPE_REAL");
 	}
 
 leave_detour:
@@ -58,7 +62,13 @@ leave_detour:
 		_unknown_2,
 		_unknown_3,
 		arg_count,
-		args
+		index,
+		priority,
+		loop,
+		gain,
+		offset,
+		pitch,
+		listener_mask
 	);
 }
 
