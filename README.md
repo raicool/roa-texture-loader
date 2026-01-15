@@ -5,7 +5,7 @@
 
 custom texture loader for rivals of aether 1 
 
-> Works through versions 1.4.0 - 2.1.6.1
+> Works through versions 1.4.0 - 2.1.9.1
 
 #### Wiki page for help creating your own texture pack: https://github.com/raicool/roa-texture-loader/wiki/Getting-Started
 
