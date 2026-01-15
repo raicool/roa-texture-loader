@@ -10,8 +10,6 @@
 
 #include <loader/d3d11_hook.h>
 
-using namespace std::literals::chrono_literals;
-
 DWORD WINAPI entry(LPVOID hModule)
 {
 	// setup hooks/function ids

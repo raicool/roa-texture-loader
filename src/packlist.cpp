@@ -26,6 +26,9 @@ void update_packlist()
 		}
 	}
 
+	// this probably doesnt need to be a thread
+	// it waits for a valid directx swapchain before 
+	// creating d3d11 textures for a queue of pack images
 	std::thread fetch(fetch_packimg);
 	fetch.join(); //< todo: remove the need to join thread
 }

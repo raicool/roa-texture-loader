@@ -126,7 +126,7 @@ void load_sprite(const std::filesystem::path& entry)
 			delete xoffset;
 			delete yoffset;
 
-//			loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
+			loader_log_debug("custom texture \"{}\" (id = {}) has been loaded", sprite_name_str, sprite_id->valueReal);
 		}
 		delete sprite_id;
 	}
@@ -171,6 +171,7 @@ void overwrite_sprite_properties(const std::filesystem::path& pack_dir)
 			{
 				speed = GMLVar(it->second["speed"].as<double>());
 			}
+
 			GMLVar* s_type = loader_yyc_call_func(sprite_get_speed_type, 1, sprite_exists_args);
 			GMLVar* sprite_set_offset_args[] = { sprite_id, &xoffset, &yoffset };
 			GMLVar* sprite_set_speed_args[] = { sprite_id, &speed, s_type};
