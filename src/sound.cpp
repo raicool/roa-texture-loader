@@ -14,73 +14,47 @@ std::unordered_map<double, GMLVar*> loaded_sound;
 //	args
 //	audio_play_sound(index, priority, loop, [gain], [offset], [pitch], [listener_mask]);
 //
-void (*audio_play_sound_original)(
-	GMLVar*,
-	void*,
-	void*,
-	uint32_t,
-	GMLVar*,
-	GMLVar*,
-	GMLVar*,
-	GMLVar*,
-	GMLVar*,
-	GMLVar*,
-	GMLVar*
-	);
-void audio_play_sound_detour(
-	GMLVar* _unknown_1, 
-	void* _unknown_2, 
-	void* _unknown_3,
-	uint32_t arg_count, 
-	GMLVar* index, 
-	GMLVar* priority, 
-	GMLVar* loop,
-	GMLVar* gain,
-	GMLVar* offset,
-	GMLVar* pitch,
-	GMLVar* listener_mask
-)
+GMLScriptPtr audio_play_sound_original;
+GMLScriptPtr audio_play_sound_at_original;
+void audio_play_sound_detour(GMLInstance* self, GMLInstance* other, GMLVar& out, uint32_t arg_count, GMLVar* args)
 {
-	if (loaded_sound.size() <= 0)
-		goto leave_detour;
-
-	if (index->type == GML_TYPE_REAL)
+	if (loaded_sound.size() > 0)
 	{
-		if (loaded_sound.contains(index->valueReal))
+		if (args[0].type == GML_TYPE_REAL)
 		{
-			index->valueReal = loaded_sound[(uint32_t)index->valueReal]->valueReal;
+			if (loaded_sound.contains(args[0].valueReal))
+			{
+				args[0].valueReal = loaded_sound[args[0].valueReal]->valueReal;
+			}
+		}
+		else
+		{
+			loader_log_warn("audio_play_sound_detour(): index->type was not GML_TYPE_REAL");
 		}
 	}
-	else
-	{
-		loader_log_warn("audio_play_sound_detour(): index->type was not GML_TYPE_REAL");
-	}
 
-leave_detour:
-	audio_play_sound_original(
-		_unknown_1,
-		_unknown_2,
-		_unknown_3,
-		arg_count,
-		index,
-		priority,
-		loop,
-		gain,
-		offset,
-		pitch,
-		listener_mask
-	);
+	audio_play_sound_original(self, other, out, arg_count, args);
 }
 
 void __setup_sound()
 {
 	uint32_t audio_play_sound = (uint32_t)loader_get_yyc_func_ptr("audio_play_sound");
+	uint32_t audio_play_sound_at = (uint32_t)loader_get_yyc_func_ptr("audio_play_sound_at");
+
 	loader_hook_create(
 		reinterpret_cast<void*>(audio_play_sound),
 		&audio_play_sound_detour, 
 		reinterpret_cast<void**>(&audio_play_sound_original)
 	);
+
+	loader_hook_create(
+		reinterpret_cast<void*>(audio_play_sound_at),
+		&audio_play_sound_detour,
+		reinterpret_cast<void**>(&audio_play_sound_at_original)
+	);
+
 	loader_hook_enable(reinterpret_cast<void*>(audio_play_sound));
+	loader_hook_enable(reinterpret_cast<void*>(audio_play_sound_at));
 }
 
 void destroy_sounds()
