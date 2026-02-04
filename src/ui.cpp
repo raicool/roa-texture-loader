@@ -20,7 +20,7 @@ void __setup_ui()
 }
 
 static int sprite_id = 0;
-GMLVar* sprite;
+RValue* sprite;
 void render_ui()
 {
 	if (ImGui::Begin(MOD_NAME))

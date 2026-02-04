@@ -6,16 +6,16 @@ void reset_sprites();
 void load_sprite(const std::filesystem::path& entry);
 void overwrite_sprite_properties(const std::filesystem::path& pack_dir);
 
-struct GMLVar;
+struct RValue;
 
 // sprite helper funcs
-GMLVar* get_sprite_name(int id);
-GMLVar* get_sprite_texture(int id);
-GMLVar* get_sprite_width(int id);
-GMLVar* get_sprite_height(int id);
+RValue* get_sprite_name(int id);
+RValue* get_sprite_texture(int id);
+RValue* get_sprite_width(int id);
+RValue* get_sprite_height(int id);
 
 // texture page helper funcs
-GMLVar* get_texture_width(GMLVar* texture);
-GMLVar* get_texture_height(GMLVar* texture);
-GMLVar* get_texture_texel_width(GMLVar* texture);
-GMLVar* get_texture_texel_height(GMLVar* texture);
+RValue* get_texture_width(RValue* texture);
+RValue* get_texture_height(RValue* texture);
+RValue* get_texture_texel_width(RValue* texture);
+RValue* get_texture_texel_height(RValue* texture);

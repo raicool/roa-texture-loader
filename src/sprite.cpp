@@ -10,8 +10,8 @@
 #include <yaml-cpp/yaml.h>
 #include <yaml_helper.h>
 
-std::unordered_map<double, GMLVar*> original_sprites;
-//std::unordered_map<double, GMLVar*> new_sprites;
+std::unordered_map<double, RValue*> original_sprites;
+//std::unordered_map<double, RValue*> new_sprites;
 
 bool is_digits(std::string& str)
 {
@@ -30,9 +30,9 @@ void reset_sprites()
 {
 	for (auto& [sprite_id, sprite_asset] : original_sprites)
 	{
-		GMLVar sprite_id_var = GMLVar(sprite_id);
-		GMLVar* args[] = { &sprite_id_var, sprite_asset };
-		GMLVar* delete_args[] = { sprite_asset };
+		RValue sprite_id_var = RValue(sprite_id);
+		RValue* args[] = { &sprite_id_var, sprite_asset };
+		RValue* delete_args[] = { sprite_asset };
 		loader_yyc_call_func(sprite_assign, 2, args);
 		loader_yyc_call_func(sprite_delete, 1, delete_args);
 		delete sprite_asset;
@@ -40,7 +40,7 @@ void reset_sprites()
 
 // 	for (auto& [sprite_id, sprite_asset] : new_sprites)
 // 	{
-// 		GMLVar* delete_args[] = { sprite_asset };
+// 		RValue* delete_args[] = { sprite_asset };
 // 		loader_yyc_call_func(sprite_delete, 1, delete_args);
 // 		delete sprite_asset;
 // 	}
@@ -62,24 +62,24 @@ void load_sprite(const std::filesystem::path& entry)
 		std::string file_path = entry.generic_string();
 		std::string sprite_name_str = file_stem.substr(0, file_stem.find("_strip"));
 
-		GMLVar sprite_name = GMLVar(sprite_name_str);
-		GMLVar* args[] = { &sprite_name };
-		GMLVar* sprite_id = loader_yyc_call_func(asset_get_index, 1, args);
+		RValue sprite_name = RValue(sprite_name_str);
+		RValue* args[] = { &sprite_name };
+		RValue* sprite_id = loader_yyc_call_func(asset_get_index, 1, args);
 
 		args[0] = sprite_id;
 		if (loader_yyc_call_func(sprite_exists, 1, args)->truthy())
 		{
 			// i really have to do this
-			GMLVar zero = GMLVar();
+			RValue zero = RValue();
 			zero.type = GML_TYPE_INT32;
 			zero.valueInt32 = 0;
 
-			GMLVar frames = GMLVar();
+			RValue frames = RValue();
 			frames.type = GML_TYPE_INT32;
 			frames.valueInt32 = 1;
 
-			GMLVar* xoffset = loader_yyc_call_func(sprite_get_xoffset, 1, args);
-			GMLVar* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
+			RValue* xoffset = loader_yyc_call_func(sprite_get_xoffset, 1, args);
+			RValue* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
 
 			// TODO: duplicating sprites is extremely buggy and will 
 			// often crash with no way of debugging :)
@@ -87,7 +87,7 @@ void load_sprite(const std::filesystem::path& entry)
 			
 // 			if (!original_sprites.contains(sprite_id->valueReal))
 // 			{
-// 				GMLVar* oldsprite = loader_yyc_call_func(sprite_duplicate, 1, args);
+// 				RValue* oldsprite = loader_yyc_call_func(sprite_duplicate, 1, args);
 // 				original_sprites[sprite_id->valueReal] = oldsprite;
 // 			}
 
@@ -104,23 +104,23 @@ void load_sprite(const std::filesystem::path& entry)
 			// delete previous custom texture in memory for sprite if one exists
 // 			if (new_sprites.contains(sprite_id->valueReal))
 // 			{
-// 				GMLVar* delete_args[] = { new_sprites[sprite_id->valueReal] };
+// 				RValue* delete_args[] = { new_sprites[sprite_id->valueReal] };
 // 				loader_yyc_call_func(sprite_delete, 1, delete_args);
 // 				delete new_sprites[sprite_id->valueReal];
 // 			}
 
-			GMLVar sprite_filename = GMLVar(file_path);
-// 			GMLVar* args_replace[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
-// 			GMLVar* sprite_new = loader_yyc_call_func(sprite_add, 6, args_replace);
+			RValue sprite_filename = RValue(file_path);
+// 			RValue* args_replace[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
+// 			RValue* sprite_new = loader_yyc_call_func(sprite_add, 6, args_replace);
 
-			GMLVar* args_replace[] = { sprite_id, &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
-			GMLVar* sprite_new = loader_yyc_call_func(sprite_replace, 7, args_replace);
+			RValue* args_replace[] = { sprite_id, &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
+			RValue* sprite_new = loader_yyc_call_func(sprite_replace, 7, args_replace);
 
 //			new_sprites[sprite_id->valueReal] = sprite_new;
-// 			GMLVar* args_assign[] = { sprite_id, sprite_new };
+// 			RValue* args_assign[] = { sprite_id, sprite_new };
 // 			loader_yyc_call_func(sprite_assign, 2, args_assign);
 // 
-// 			GMLVar* args_delete[] = { sprite_new };
+// 			RValue* args_delete[] = { sprite_new };
 // 			loader_yyc_call_func(sprite_delete, 1, args_assign);
 // 			delete sprite_new;
 			delete xoffset;
@@ -146,35 +146,35 @@ void overwrite_sprite_properties(const std::filesystem::path& pack_dir)
 	{
 		loader_log_debug(it->first.as<std::string>());
 
-		GMLVar sprite_name = GMLVar(it->first.as<std::string>());
-		GMLVar* asset_get_index_args[] = { &sprite_name };
+		RValue sprite_name = RValue(it->first.as<std::string>());
+		RValue* asset_get_index_args[] = { &sprite_name };
 
-		GMLVar* sprite_id = loader_yyc_call_func(asset_get_index, 1, asset_get_index_args);
-		GMLVar* sprite_exists_args[] = { sprite_id };
+		RValue* sprite_id = loader_yyc_call_func(asset_get_index, 1, asset_get_index_args);
+		RValue* sprite_exists_args[] = { sprite_id };
 		if (loader_yyc_call_func(sprite_exists, 1, sprite_exists_args)->truthy())
 		{
-			GMLVar xoffset = GMLVar(0.0f);
-			GMLVar yoffset = GMLVar(0.0f);
-			GMLVar speed = GMLVar(0.0f);
+			RValue xoffset = RValue(0.0f);
+			RValue yoffset = RValue(0.0f);
+			RValue speed = RValue(0.0f);
 
 			if (it->second["xoffset"].IsDefined())
 			{
-				xoffset = GMLVar(it->second["xoffset"].as<double>());
+				xoffset = RValue(it->second["xoffset"].as<double>());
 			}
 
 			if (it->second["yoffset"].IsDefined())
 			{
-				yoffset = GMLVar(it->second["yoffset"].as<double>());
+				yoffset = RValue(it->second["yoffset"].as<double>());
 			}
 
 			if (it->second["speed"].IsDefined())
 			{
-				speed = GMLVar(it->second["speed"].as<double>());
+				speed = RValue(it->second["speed"].as<double>());
 			}
 
-			GMLVar* s_type = loader_yyc_call_func(sprite_get_speed_type, 1, sprite_exists_args);
-			GMLVar* sprite_set_offset_args[] = { sprite_id, &xoffset, &yoffset };
-			GMLVar* sprite_set_speed_args[] = { sprite_id, &speed, s_type};
+			RValue* s_type = loader_yyc_call_func(sprite_get_speed_type, 1, sprite_exists_args);
+			RValue* sprite_set_offset_args[] = { sprite_id, &xoffset, &yoffset };
+			RValue* sprite_set_speed_args[] = { sprite_id, &speed, s_type};
 
 			loader_yyc_call_func(sprite_set_offset, 3, sprite_set_offset_args);
 			loader_yyc_call_func(sprite_set_speed, 3, sprite_set_speed_args);
@@ -185,65 +185,65 @@ void overwrite_sprite_properties(const std::filesystem::path& pack_dir)
 	}
 }
 
-GMLVar* get_sprite_name(int id)
+RValue* get_sprite_name(int id)
 {
 	if (!ready)
 	{
 		__setup_funcids();
 	}
 
-	GMLVar sprite_id = GMLVar(id);
+	RValue sprite_id = RValue(id);
 
-	GMLVar* sprite_get_name_args[] = { &sprite_id };
-	GMLVar* name = loader_yyc_call_func(sprite_get_name, 1, sprite_get_name_args);
+	RValue* sprite_get_name_args[] = { &sprite_id };
+	RValue* name = loader_yyc_call_func(sprite_get_name, 1, sprite_get_name_args);
 
 	return name;
 }
 
-GMLVar* get_sprite_texture(int id)
+RValue* get_sprite_texture(int id)
 {
 	if (!ready)
 	{
 		__setup_funcids();
 	}
 
-	GMLVar sprite_id = GMLVar(id);
+	RValue sprite_id = RValue(id);
 
 	// i really have to do this
-	GMLVar zero = GMLVar(0);
-	GMLVar* sprite_get_texture_args[] = { &sprite_id, &zero };
-	GMLVar* uvs = loader_yyc_call_func(sprite_get_texture, 2, sprite_get_texture_args);
+	RValue zero = RValue(0);
+	RValue* sprite_get_texture_args[] = { &sprite_id, &zero };
+	RValue* uvs = loader_yyc_call_func(sprite_get_texture, 2, sprite_get_texture_args);
 
 	return uvs;
 }
 
-GMLVar* get_sprite_width(int id)
+RValue* get_sprite_width(int id)
 {
 	if (!ready)
 	{
 		__setup_funcids();
 	}
 
-	GMLVar sprite_id = GMLVar(id);
+	RValue sprite_id = RValue(id);
 
-	GMLVar* args[] = { &sprite_id };
+	RValue* args[] = { &sprite_id };
 	return loader_yyc_call_func(sprite_get_width, 1, args);
 }
 
-GMLVar* get_sprite_height(int id)
+RValue* get_sprite_height(int id)
 {
 	if (!ready)
 	{
 		__setup_funcids();
 	}
 
-	GMLVar sprite_id = GMLVar(id);
+	RValue sprite_id = RValue(id);
 
-	GMLVar* args[] = { &sprite_id };
+	RValue* args[] = { &sprite_id };
 	return loader_yyc_call_func(sprite_get_height, 1, args);
 }
 
-GMLVar* get_texture_width(GMLVar* texture)
+RValue* get_texture_width(RValue* texture)
 {
 	if (texture->type != GML_TYPE_POINTER)
 	{
@@ -251,11 +251,11 @@ GMLVar* get_texture_width(GMLVar* texture)
 		return nullptr;
 	}
 
-	GMLVar* args[] = { texture };
+	RValue* args[] = { texture };
 	return loader_yyc_call_func(texture_get_width, 1, args);
 }
 
-GMLVar* get_texture_height(GMLVar* texture)
+RValue* get_texture_height(RValue* texture)
 {
 	if (texture->type != GML_TYPE_POINTER)
 	{
@@ -263,11 +263,11 @@ GMLVar* get_texture_height(GMLVar* texture)
 		return nullptr;
 	}
 
-	GMLVar* args[] = { texture };
+	RValue* args[] = { texture };
 	return loader_yyc_call_func(texture_get_height, 1, args);
 }
 
-GMLVar* get_texture_texel_width(GMLVar* texture)
+RValue* get_texture_texel_width(RValue* texture)
 {
 	if (texture->type != GML_TYPE_POINTER)
 	{
@@ -275,11 +275,11 @@ GMLVar* get_texture_texel_width(GMLVar* texture)
 		return nullptr;
 	}
 
-	GMLVar* args[] = { texture };
+	RValue* args[] = { texture };
 	return loader_yyc_call_func(texture_get_texel_width, 1, args);
 }
 
-GMLVar* get_texture_texel_height(GMLVar* texture)
+RValue* get_texture_texel_height(RValue* texture)
 {
 	if (texture->type != GML_TYPE_POINTER)
 	{
@@ -287,6 +287,6 @@ GMLVar* get_texture_texel_height(GMLVar* texture)
 		return nullptr;
 	}
 
-	GMLVar* args[] = { texture };
+	RValue* args[] = { texture };
 	return loader_yyc_call_func(texture_get_texel_height, 1, args);
 }

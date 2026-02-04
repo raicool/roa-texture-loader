@@ -8,15 +8,15 @@
 #include <filesystem>
 #include <unordered_map>
 
-std::unordered_map<double, GMLVar*> loaded_sound;
+std::unordered_map<double, RValue*> loaded_sound;
 
 //
 //	args
 //	audio_play_sound(index, priority, loop, [gain], [offset], [pitch], [listener_mask]);
 //
-GMLScriptPtr audio_play_sound_original;
-GMLScriptPtr audio_play_sound_at_original;
-void audio_play_sound_detour(GMLInstance* self, GMLInstance* other, GMLVar& out, uint32_t arg_count, GMLVar* args)
+PFUNC_YYGMLScript audio_play_sound_original;
+PFUNC_YYGMLScript audio_play_sound_at_original;
+void audio_play_sound_detour(GMLInstance* self, GMLInstance* other, RValue& out, uint32_t arg_count, RValue* args)
 {
 	if (loaded_sound.size() > 0)
 	{
@@ -59,14 +59,14 @@ void __setup_sound()
 
 void destroy_sounds()
 {
-	GMLVar cur_id;
+	RValue cur_id;
 	for (auto& [_id, _sound_asset] : loaded_sound)
 	{
 		cur_id.type = GML_TYPE_REAL;
 		cur_id.valueReal = _id;
 
-		GMLVar* destroy_args[] = { &cur_id };
-		GMLVar* result = loader_yyc_call_func(audio_destroy_stream, 1, destroy_args);
+		RValue* destroy_args[] = { &cur_id };
+		RValue* result = loader_yyc_call_func(audio_destroy_stream, 1, destroy_args);
 
 		if (result->valueReal == 1)
 		{
@@ -93,17 +93,17 @@ void load_ogg(const std::filesystem::path& entry)
 		std::string file_stem = entry.stem().generic_string();
 		std::string file_path = entry.generic_string();
 
-		GMLVar sound_name = GMLVar(file_stem);
-		GMLVar* args[] = { &sound_name };
-		GMLVar* sound_id = loader_yyc_call_func(asset_get_index, 1, args);
+		RValue sound_name = RValue(file_stem);
+		RValue* args[] = { &sound_name };
+		RValue* sound_id = loader_yyc_call_func(asset_get_index, 1, args);
 
 		args[0] = sound_id;
 		if (loader_yyc_call_func(audio_exists, 1, args)->truthy())
 		{
-			GMLVar sound_filename = GMLVar(file_path);
+			RValue sound_filename = RValue(file_path);
 
 			args[0] = &sound_filename;
-			GMLVar* new_sound_asset = loader_yyc_call_func(audio_create_stream, 1, args);
+			RValue* new_sound_asset = loader_yyc_call_func(audio_create_stream, 1, args);
 
 			loaded_sound[(uint32_t)sound_id->valueReal] = new_sound_asset;
 		}
