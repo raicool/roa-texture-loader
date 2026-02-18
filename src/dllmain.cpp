@@ -14,7 +14,6 @@ DWORD WINAPI entry(LPVOID hModule)
 {
 	// setup hooks/function ids
 	__setup_funcids();
-//	__setup_sprite();
 	__setup_sound();
 	__setup_ui();
 

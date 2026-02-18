@@ -38,15 +38,7 @@ void reset_sprites()
 		delete sprite_asset;
 	}
 
-// 	for (auto& [sprite_id, sprite_asset] : new_sprites)
-// 	{
-// 		RValue* delete_args[] = { sprite_asset };
-// 		loader_yyc_call_func(sprite_delete, 1, delete_args);
-// 		delete sprite_asset;
-// 	}
-
 	original_sprites.clear();
-//	new_sprites.clear();
 }
 
 void load_sprite(const std::filesystem::path& entry)
@@ -81,16 +73,6 @@ void load_sprite(const std::filesystem::path& entry)
 			RValue* xoffset = loader_yyc_call_func(sprite_get_xoffset, 1, args);
 			RValue* yoffset = loader_yyc_call_func(sprite_get_yoffset, 1, args);
 
-			// TODO: duplicating sprites is extremely buggy and will 
-			// often crash with no way of debugging :)
-			// so idk what to do here
-			
-// 			if (!original_sprites.contains(sprite_id->valueReal))
-// 			{
-// 				RValue* oldsprite = loader_yyc_call_func(sprite_duplicate, 1, args);
-// 				original_sprites[sprite_id->valueReal] = oldsprite;
-// 			}
-
 			if (file_stem.contains("_strip"))
 			{
 				std::string frames_str = file_stem.substr(file_stem.find("_strip") + 6, file_stem.size());
@@ -101,27 +83,10 @@ void load_sprite(const std::filesystem::path& entry)
 				}
 			}
 
-			// delete previous custom texture in memory for sprite if one exists
-// 			if (new_sprites.contains(sprite_id->valueReal))
-// 			{
-// 				RValue* delete_args[] = { new_sprites[sprite_id->valueReal] };
-// 				loader_yyc_call_func(sprite_delete, 1, delete_args);
-// 				delete new_sprites[sprite_id->valueReal];
-// 			}
-
 			RValue sprite_filename = RValue(file_path);
-// 			RValue* args_replace[] = { &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
-// 			RValue* sprite_new = loader_yyc_call_func(sprite_add, 6, args_replace);
 
 			RValue* args_replace[] = { sprite_id, &sprite_filename, &frames, &zero, &zero, xoffset, yoffset };
 			RValue* sprite_new = loader_yyc_call_func(sprite_replace, 7, args_replace);
-
-//			new_sprites[sprite_id->valueReal] = sprite_new;
-// 			RValue* args_assign[] = { sprite_id, sprite_new };
-// 			loader_yyc_call_func(sprite_assign, 2, args_assign);
-// 
-// 			RValue* args_delete[] = { sprite_new };
-// 			loader_yyc_call_func(sprite_delete, 1, args_assign);
 // 			delete sprite_new;
 			delete xoffset;
 			delete yoffset;
@@ -144,7 +109,7 @@ void overwrite_sprite_properties(const std::filesystem::path& pack_dir)
 
 	for (YAML::const_iterator it = spr_prop.begin(); it != spr_prop.end(); ++it)
 	{
-		loader_log_debug(it->first.as<std::string>());
+		//loader_log_debug(it->first.as<std::string>());
 
 		RValue sprite_name = RValue(it->first.as<std::string>());
 		RValue* asset_get_index_args[] = { &sprite_name };
