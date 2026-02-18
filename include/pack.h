@@ -21,6 +21,8 @@ struct pack
 	std::filesystem::path pack_path; //< path to texture pack
 
 	bool enabled; //< if pack should overwrite ingame textures
+
+	void save();
 };
 
 std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir);

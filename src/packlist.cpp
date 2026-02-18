@@ -3,6 +3,10 @@
 #include "pack.h"
 #include "sound.h"
 #include "sprite.h"
+#include "func_ids.h"
+
+#include <loader/yyc.h>
+#include <GMLScriptEnv/yoyo.h>
 
 #include <filesystem>
 #include <vector>
@@ -20,9 +24,10 @@ void update_packlist()
 		if (entry.is_directory())
 		{
 			std::shared_ptr<pack> new_pack = open_texture_pack(entry.path());
-			new_pack->enabled = true;
-
-			loaded_packs.emplace_back(new_pack);
+			if (new_pack != nullptr)
+			{
+				loaded_packs.emplace_back(new_pack);
+			}
 		}
 	}
 
@@ -33,9 +38,21 @@ void update_packlist()
 	fetch.join(); //< todo: remove the need to join thread
 }
 
-void apply_packs()
+void apply_packs(bool play_sound)
 {
 	reset_sprites();
+
+	if (play_sound)
+	{
+		RValue sound_name = "mfx_notice";
+		RValue* asset_get_index_args[] = { &sound_name };
+		RValue* sound_id = loader_yyc_call_func(asset_get_index, 1, asset_get_index_args);
+		RValue priority = 1;
+		RValue loop = false;
+		RValue gain = 0.5;
+		RValue* audio_play_sound_args[] = { sound_id, &priority, &loop, &gain };
+		loader_yyc_call_func("audio_play_sound", 4, audio_play_sound_args);
+	}
 
 	for (auto& _pack : loaded_packs)
 	{

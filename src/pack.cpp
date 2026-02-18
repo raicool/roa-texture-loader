@@ -95,12 +95,15 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 			config,
 			"author",
 			"").as<std::string>();
+		
+		_pack->enabled = get_nodeleaf_safe(
+			config,
+			"enabled",
+			true).as<bool>();
 	}
 	else
 	{
-		_pack->name = "???";
-		_pack->description = "missing description";
-		_pack->author = "";
+		return nullptr;
 	}
 
 	std::basic_ifstream<uint8_t> pack_img(pack_dir.generic_string() + "/pack.png", std::ios::binary);
@@ -128,4 +131,20 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 	_pack->shader_path = pack_dir.generic_string() + "/shader/";
 
 	return _pack;
+}
+
+void pack::save()
+{
+	const std::string path = pack_path.generic_string() + "/pack.ini";
+	YAML::Node config = YAML::LoadFile(path);
+	if (!config)
+	{
+		return;
+	}
+
+	config["enabled"] = this->enabled;
+
+	std::ofstream out_file(path, std::ios::out);
+	out_file << config;
+	out_file.close();
 }

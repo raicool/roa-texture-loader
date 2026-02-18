@@ -17,10 +17,10 @@ void handle_wndproc(
 {
 	if (uMsg == WM_KEYDOWN && wParam == VK_F1)
 	{
-		apply_packs();
+		apply_packs(true);
 	}
 
-	if (uMsg == WM_KEYDOWN && wParam == VK_F2)
+	if (uMsg == WM_KEYDOWN && wParam == VK_F3)
 	{
 		ui_visible = !ui_visible;
 	}

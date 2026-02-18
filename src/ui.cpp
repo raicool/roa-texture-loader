@@ -2,6 +2,7 @@
 
 #include "mod.h"
 #include "packlist.h"
+#include "func_ids.h"
 
 #include <loader/d3d11_hook.h>
 
@@ -45,9 +46,13 @@ void render_ui()
 			ImGui::EndMenuBar();
 		}
 
+		ImGui::Text("Press F3 to hide/unhide the texture pack list");
+		ImGui::Text("Press F1 to reload textures");
+		ImGui::Separator();
+
 		if (ImGui::Button("Reload Textures"))
 		{
-			apply_packs();
+			apply_packs(true);
 		}
 
 		packlist* pack_list = get_packlist();
@@ -98,7 +103,10 @@ void render_packdata(const std::shared_ptr<pack>& packdata)
 	ImGui::Text("%s", packdata->description.c_str());
 
 	ImGui::TableNextColumn();
-	ImGui::Checkbox("Enabled?", &packdata->enabled);
+	if (ImGui::Checkbox("Enabled?", &packdata->enabled))
+	{
+		packdata->save();
+	}
 
 	// render pack image last since we need to know the height of the table row
 	ImGui::TableSetColumnIndex(0);
