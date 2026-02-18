@@ -99,7 +99,7 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 		_pack->enabled = get_nodeleaf_safe(
 			config,
 			"enabled",
-			true).as<bool>();
+			false).as<bool>();
 	}
 	else
 	{
