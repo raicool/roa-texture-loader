@@ -11,7 +11,7 @@ custom texture loader for rivals of aether 1
 
 ###### requires [roa-mod-loader](https://github.com/raicool/roa-mod-loader) to be installed to Rivals of Aether's game directory
 
-<img width="2391" height="1205" alt="RivalsofAether_GVG7mwkqPg" src="https://github.com/raicool/roa-texture-loader/blob/main/image.png?raw=true"/>
+<img width="832" height="478" alt="image" src="https://github.com/user-attachments/assets/16d89cb6-dfc6-449e-9acd-107515980068" />
 
 # building & installing
 requires Visual Studio 2022 in order to be built (older visual studio versions most likely work but i have not tested them)
