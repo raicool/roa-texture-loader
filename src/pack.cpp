@@ -100,6 +100,11 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 			config,
 			"enabled",
 			false).as<bool>();
+		
+		_pack->priority = get_nodeleaf_safe(
+			config,
+			"priority",
+			0).as<int16_t>();
 	}
 	else
 	{
@@ -143,6 +148,7 @@ void pack::save()
 	}
 
 	config["enabled"] = this->enabled;
+	config["priority"] = this->priority;
 
 	std::ofstream out_file(path, std::ios::out);
 	out_file << config;

@@ -27,8 +27,11 @@ void update_pack_queue()
 			{
 				loaded_packs.emplace(new_pack);
 			}
+			
 		}
 	}
+
+	loaded_packs.sort();
 
 	// this probably doesnt need to be a thread
 	// it waits for a valid directx swapchain before 
