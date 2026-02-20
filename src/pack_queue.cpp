@@ -1,6 +1,5 @@
-#include "packlist.h"
+#include "pack_queue.h"
 
-#include "pack.h"
 #include "sound.h"
 #include "sprite.h"
 #include "func_ids.h"
@@ -11,9 +10,9 @@
 #include <filesystem>
 #include <vector>
 
-packlist loaded_packs;
+pack_queue loaded_packs;
 
-void update_packlist()
+void update_pack_queue()
 {
 	loaded_packs.clear();
 
@@ -26,7 +25,7 @@ void update_packlist()
 			std::shared_ptr<pack> new_pack = open_texture_pack(entry.path());
 			if (new_pack != nullptr)
 			{
-				loaded_packs.emplace_back(new_pack);
+				loaded_packs.emplace(new_pack);
 			}
 		}
 	}
@@ -47,8 +46,9 @@ void apply_packs(bool play_sound)
 		call_audio_play_sound("mfx_notice", 1, false, 0.5);
 	}
 
-	for (auto& _pack : loaded_packs)
+	for (auto iter = loaded_packs.rbegin(); iter != loaded_packs.rend(); ++iter)
 	{
+		auto* _pack = iter->get();
 		if (_pack->enabled)
 		{
 			// load sprites
@@ -58,20 +58,23 @@ void apply_packs(bool play_sound)
 				{
 					load_sprite(_sprite_file.path());
 				}
+
 				overwrite_sprite_properties(_pack->pack_path);
 			}
 
 			// load sounds
 			if (std::filesystem::exists(_pack->sound_path))
+			{
 				for (const auto& _sound_file : std::filesystem::directory_iterator(_pack->sound_path))
 				{
 					load_ogg(_sound_file.path());
 				}
+			}
 		}
 	}
 }
 
-packlist* get_packlist()
+pack_queue* get_loaded_packs()
 {
 	return &loaded_packs;
 }

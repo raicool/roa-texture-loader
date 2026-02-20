@@ -21,6 +21,7 @@ struct pack
 	std::filesystem::path pack_path; //< path to texture pack
 
 	bool enabled; //< if pack should overwrite ingame textures
+	int16_t priority; //< priority of the texture pack, higher number overwrites lower priority packs' overlapping textures
 
 	void save();
 };

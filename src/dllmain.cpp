@@ -3,7 +3,7 @@
 #include "func_ids.h"
 #include "mod.h"
 #include "pack.h"
-#include "packlist.h"
+#include "pack_queue.h"
 #include "sound.h"
 #include "sprite.h"
 #include "ui.h"
@@ -18,7 +18,7 @@ DWORD WINAPI entry(LPVOID hModule)
 	__setup_ui();
 
 	// read from custom_sprites directory and apply sprite overwrites
-	update_packlist();
+	update_pack_queue();
 	apply_packs();
 
 	std::string mod_name = MOD_NAME;

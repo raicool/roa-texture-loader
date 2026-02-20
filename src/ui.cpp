@@ -1,7 +1,7 @@
 #include "ui.h"
 
 #include "mod.h"
-#include "packlist.h"
+#include "pack_queue.h"
 #include "func_ids.h"
 
 #include <loader/d3d11_hook.h>
@@ -55,36 +55,37 @@ void render_ui()
 			apply_packs(true);
 		}
 
-		packlist* pack_list = get_packlist();
+		pack_queue* pack_list = get_loaded_packs();
 
 		if (pack_list)
 		{
-			render_texturepack_table(pack_list);
+			render_table(*pack_list);
 		}
 	}
 	ImGui::End();
 }
 
-void render_texturepack_table(packlist* pack_list)
+void render_table(pack_queue& pack_list)
 {
 	constexpr ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_HighlightHoveredColumn;
 
-	if (ImGui::BeginTable("##", 3, flags))
+	if (ImGui::BeginTable("##", 4, flags))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
+		ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 16);
 		ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 48);
 		ImGui::TableSetupColumn("Details", ImGuiTableColumnFlags_None);
 		ImGui::TableSetupColumn("Enabled", ImGuiTableColumnFlags_WidthFixed, 128);
 		ImGui::TableHeadersRow();
 		uint32_t i = 0;
-		for (const std::shared_ptr<pack>& _pack : *pack_list)
+		for (const std::shared_ptr<pack>& _pack : pack_list)
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
 
 			ImGui::PushID(i);
 
-			render_packdata(_pack);
+			render_packdata(pack_list, _pack);
 
 			ImGui::PopID();
 			i++;
@@ -94,10 +95,9 @@ void render_texturepack_table(packlist* pack_list)
 	}
 }
 
-void render_packdata(const std::shared_ptr<pack>& packdata)
+void render_packdata(pack_queue& queue, const std::shared_ptr<pack>& packdata)
 {
-
-	ImGui::TableSetColumnIndex(1);
+	ImGui::TableSetColumnIndex(2);
 	ImGui::Text("%s", packdata->name.c_str());
 	ImGui::Text("by %s", packdata->author.c_str());
 	ImGui::Text("%s", packdata->description.c_str());
@@ -108,8 +108,20 @@ void render_packdata(const std::shared_ptr<pack>& packdata)
 		packdata->save();
 	}
 
-	// render pack image last since we need to know the height of the table row
 	ImGui::TableSetColumnIndex(0);
+	if (ImGui::Button("^"))
+	{
+		queue.raise(packdata);
+	}
+
+	if (ImGui::Button("v"))
+	{
+		queue.lower(packdata);
+	}
+
+	// render pack image last since we need to know the height of the table row
+	ImGui::TableNextColumn();
+	ImGui::SameLine();
 	auto* table = ImGui::GetCurrentContext()->CurrentTable;
 	if (packdata->pack_img)
 	{
