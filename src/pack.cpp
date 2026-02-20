@@ -95,21 +95,35 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 			config,
 			"author",
 			"").as<std::string>();
-		
-		_pack->enabled = get_nodeleaf_safe(
-			config,
-			"enabled",
-			false).as<bool>();
-		
-		_pack->priority = get_nodeleaf_safe(
-			config,
-			"priority",
-			0).as<int16_t>();
 	}
 	else
 	{
 		return nullptr;
 	}
+
+	if (file_exists(pack_dir.generic_string() + "/local_pref.ini"))
+	{
+		const YAML::Node local_config = YAML::LoadFile(pack_dir.generic_string() + "/local_pref.ini");
+
+		std::string err_string = std::format("unable to open texture pack: {}", pack_dir.generic_string());
+		if (!local_config)
+		{
+			err_string.append("\n\t^~~~~~ local_pref.ini could not be opened properly.");
+			loader_log_error(err_string);
+			return nullptr;
+		}
+
+		_pack->enabled = get_nodeleaf_safe(
+			local_config,
+			"enabled",
+			false).as<bool>();
+		
+		_pack->priority = get_nodeleaf_safe(
+			local_config,
+			"priority",
+			0).as<int16_t>();
+	}
+	
 
 	std::basic_ifstream<uint8_t> pack_img(pack_dir.generic_string() + "/pack.png", std::ios::binary);
 
@@ -140,17 +154,14 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 
 void pack::save()
 {
-	const std::string path = pack_path.generic_string() + "/pack.ini";
-	YAML::Node config = YAML::LoadFile(path);
-	if (!config)
-	{
-		return;
-	}
+	const std::string path = pack_path.generic_string() + "/local_pref.ini";
+	std::ofstream out_file(path, std::ios::out);
+
+	YAML::Node config;
 
 	config["enabled"] = this->enabled;
 	config["priority"] = this->priority;
 
-	std::ofstream out_file(path, std::ios::out);
 	out_file << config;
 	out_file.close();
 }
