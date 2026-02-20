@@ -30,3 +30,4 @@ inline int texture_get_texel_width;
 inline int texture_get_texel_height;
 
 void __setup_funcids();
+void call_audio_play_sound(const char* sound_name, float priority, bool loop, float gain = 1.0);
