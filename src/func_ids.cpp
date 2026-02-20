@@ -33,3 +33,17 @@ void __setup_funcids()
 
 	ready = true;
 }
+
+void call_audio_play_sound(const char* sound_name, float priority, bool loop, float gain)
+{
+	RValue _rv_sound_name = sound_name;
+	RValue* _asset_get_index_args[] = { &_rv_sound_name };
+	RValue* _sound_id = loader_yyc_call_func(asset_get_index, 1, _asset_get_index_args);
+
+	RValue _rv_priority = priority;
+	RValue _rv_loop = false;
+	RValue _rv_gain = gain;
+
+	RValue* audio_play_sound_args[] = { _sound_id, &_rv_priority, &_rv_loop, &_rv_gain };
+	loader_yyc_call_func("audio_play_sound", 4, audio_play_sound_args);
+}

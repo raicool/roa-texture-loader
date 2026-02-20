@@ -44,14 +44,7 @@ void apply_packs(bool play_sound)
 
 	if (play_sound)
 	{
-		RValue sound_name = "mfx_notice";
-		RValue* asset_get_index_args[] = { &sound_name };
-		RValue* sound_id = loader_yyc_call_func(asset_get_index, 1, asset_get_index_args);
-		RValue priority = 1;
-		RValue loop = false;
-		RValue gain = 0.5;
-		RValue* audio_play_sound_args[] = { sound_id, &priority, &loop, &gain };
-		loader_yyc_call_func("audio_play_sound", 4, audio_play_sound_args);
+		call_audio_play_sound("mfx_notice", 1, false, 0.5);
 	}
 
 	for (auto& _pack : loaded_packs)
