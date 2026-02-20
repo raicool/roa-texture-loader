@@ -120,8 +120,8 @@ void render_packdata(pack_queue& queue, const std::shared_ptr<pack>& packdata)
 	}
 
 	// render pack image last since we need to know the height of the table row
-	ImGui::TableNextColumn();
 	ImGui::SameLine();
+	ImGui::TableNextColumn();
 	auto* table = ImGui::GetCurrentContext()->CurrentTable;
 	if (packdata->pack_img)
 	{
