@@ -13,6 +13,9 @@ custom texture loader for rivals of aether 1
 
 <img width="832" height="478" alt="image" src="https://github.com/user-attachments/assets/16d89cb6-dfc6-449e-9acd-107515980068" />
 
+# planned future features
+- [ ] add custom sound effects to attack windows (e.g. normals, taunts, articles, etc)
+
 # building & installing
 requires Visual Studio 2022 in order to be built (older visual studio versions most likely work but i have not tested them)
 
@@ -26,6 +29,6 @@ requires Visual Studio 2022 in order to be built (older visual studio versions m
 	cmake -G "Ninja" -DCMAKE_SYSTEM_PROCESSOR=i386 -B bin/
 	ninja -C bin/
 ```
-3. copy the dll `bin/roa-texture-loader-XXXXXX-MSVC.dll` into the mods directory of rivals of aether, e.g `C:/Program Files (x86)/Steam/steamapps/common/Rivals of Aether/mods/`
+3. copy the dll `bin/roa-texture-loader.dll` into the mods directory of rivals of aether, e.g `C:/Program Files (x86)/Steam/steamapps/common/Rivals of Aether/mods/`
 	- if the mods directory doesnt already exists, create one
 	- copy the roa-texture-loader folder into the mods folder as well
