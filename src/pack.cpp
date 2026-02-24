@@ -67,10 +67,22 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 	}
 
 	std::shared_ptr<pack> _pack = std::make_shared<pack>();
+	const std::string pack_ini_path = pack_dir.generic_string() + "/pack.ini";
 
-	if (file_exists(pack_dir.generic_string() + "/pack.ini"))
+	if (file_exists(pack_ini_path))
 	{
-		const YAML::Node config = YAML::LoadFile(pack_dir.generic_string() + "/pack.ini");
+		YAML::Node config;
+
+		try
+		{
+			config = YAML::LoadFile(pack_ini_path);
+		}
+		catch (YAML::ParserException& _exc)
+		{
+			loader_log_error("overwrite_sprite_properties(): ParserException caught from \"{}\"", pack_ini_path);
+			loader_log_error("\t^~~~~~~ {}", _exc.what());
+			return nullptr;
+		}
 
 		std::string err_string = std::format("unable to open texture pack: {}", pack_dir.generic_string());
 		if (!config)
@@ -101,9 +113,20 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 		return nullptr;
 	}
 
-	if (file_exists(pack_dir.generic_string() + "/local_pref.ini"))
+	const std::string local_pref_path = pack_dir.generic_string() + "/local_pref.ini";
+	if (file_exists(local_pref_path))
 	{
-		const YAML::Node local_config = YAML::LoadFile(pack_dir.generic_string() + "/local_pref.ini");
+		YAML::Node local_config;
+		try
+		{
+			local_config = YAML::LoadFile(local_pref_path);
+		}
+		catch (YAML::ParserException& _exc)
+		{
+			loader_log_error("overwrite_sprite_properties(): ParserException caught from \"{}\"", local_pref_path);
+			loader_log_error("\t^~~~~~~ {}", _exc.what());
+			return nullptr;
+		}
 
 		std::string err_string = std::format("unable to open texture pack: {}", pack_dir.generic_string());
 		if (!local_config)

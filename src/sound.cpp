@@ -16,7 +16,7 @@ std::unordered_map<double, RValue*> loaded_sound;
 //
 PFUNC_YYGMLScript audio_play_sound_original;
 PFUNC_YYGMLScript audio_play_sound_at_original;
-void audio_play_sound_detour(GMLInstance* self, GMLInstance* other, RValue& out, uint32_t arg_count, RValue* args)
+void audio_play_sound_detour(CInstance* self, CInstance* other, RValue& out, uint32_t arg_count, RValue* args)
 {
 	if (loaded_sound.size() > 0)
 	{

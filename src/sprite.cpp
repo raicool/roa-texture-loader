@@ -11,7 +11,6 @@
 #include <yaml_helper.h>
 
 std::unordered_map<double, RValue*> original_sprites;
-//std::unordered_map<double, RValue*> new_sprites;
 
 bool is_digits(std::string& str)
 {
@@ -26,6 +25,7 @@ bool is_digits(std::string& str)
 
 	return true;
 }
+
 void reset_sprites()
 {
 	for (auto& [sprite_id, sprite_asset] : original_sprites)
@@ -99,13 +99,24 @@ void load_sprite(const std::filesystem::path& entry)
 
 void overwrite_sprite_properties(const std::filesystem::path& pack_dir)
 {
-	if (!file_exists(pack_dir.generic_string() + "/spr_prop.ini"))
+	const std::string path = pack_dir.generic_string() + "/spr_prop.ini";
+	if (!file_exists(path))
 	{
 		// no spr_prop file found, return quietely
 		return;
 	}
 
-	const YAML::Node spr_prop = YAML::LoadFile(pack_dir.generic_string() + "/spr_prop.ini");
+	YAML::Node spr_prop;
+	try
+	{
+		spr_prop = YAML::LoadFile(path);
+	}
+	catch (YAML::ParserException& _exc)
+	{
+		loader_log_error("overwrite_sprite_properties(): ParserException caught from \"{}\"", path);
+		loader_log_error("\t^~~~~~~ {}", _exc.what());
+		return;
+	}
 
 	for (YAML::const_iterator it = spr_prop.begin(); it != spr_prop.end(); ++it)
 	{
