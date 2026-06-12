@@ -4,4 +4,4 @@
 
 void __setup_sound();
 
-void load_ogg(const std::filesystem::path& entry);
+void load_sound(const std::filesystem::path& entry);

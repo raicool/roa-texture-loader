@@ -46,7 +46,7 @@ void apply_packs(bool play_sound)
 
 	if (play_sound)
 	{
-		call_audio_play_sound("mfx_notice", 1, false, 0.5);
+		call_audio_play_sound("mfx_notice", 1, false, 0.3);
 	}
 
 	for (auto iter = loaded_packs.rbegin(); iter != loaded_packs.rend(); ++iter)
@@ -70,7 +70,7 @@ void apply_packs(bool play_sound)
 			{
 				for (const auto& _sound_file : std::filesystem::directory_iterator(_pack->sound_path))
 				{
-					load_ogg(_sound_file.path());
+					load_sound(_sound_file.path());
 				}
 			}
 		}
