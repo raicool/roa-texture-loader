@@ -6,8 +6,13 @@
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
+#include <GMLScriptEnv/yoyo.h>
+#include <loader/log.h>
 
-bool ui_visible = true;
+bool g_uiflag = true;
+
+#define IS_MOUSE_EVENT(x) (x >= WM_MOUSEFIRST && x <= WM_MOUSELAST)
+
 void handle_wndproc(
 	const HWND hWnd,
 	UINT uMsg,
@@ -17,12 +22,23 @@ void handle_wndproc(
 {
 	if (uMsg == WM_KEYDOWN && wParam == VK_F1)
 	{
-		apply_packs(true);
+		switch (wParam)
+		{
+		case VK_F1:
+			apply_packs(true);
+			break;
+		
+		case VK_F3:
+			g_uiflag = !g_uiflag;
+			break;
+		}
+		
 	}
 
-	if (uMsg == WM_KEYDOWN && wParam == VK_F3)
+	if (IS_MOUSE_EVENT(uMsg) && g_uiflag)
 	{
-		ui_visible = !ui_visible;
+		HCURSOR cursor = LoadCursorA(0, IDC_ARROW);
+		SetCursor(cursor);
 	}
 
 	LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -45,7 +61,7 @@ void dx_present(
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	if (ui_visible)
+	if (g_uiflag)
 	{
 		render_ui();
 	}
