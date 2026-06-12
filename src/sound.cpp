@@ -61,16 +61,12 @@ void audio_play_sound_detour(GMLInstance* self, GMLInstance* other, RValue& out,
 {
 	if (loaded_sound.size() > 0)
 	{
-		if (args[0].type == GML_TYPE_REAL)
+		uint32_t original_id = args[0].getInt32();
+
+		if (loaded_sound.contains(original_id))
 		{
-			if (loaded_sound.contains(args[0].valueReal))
-			{
-				args[0].valueReal = loaded_sound[args[0].valueReal].ref->valueReal;
-			}
-		}
-		else
-		{
-			loader_log_warn("audio_play_sound_detour(): index->type was not GML_TYPE_REAL");
+			args[0].type = GML_TYPE_REAL;
+			args[0].valueReal = loaded_sound[original_id].ref->valueReal;
 		}
 	}
 
@@ -114,6 +110,7 @@ void destroy_sounds()
 		{
 		case SOUND_STREAM:
 			result = loader_yyc_call_func(audio_destroy_stream, 1, destroy_args);
+			break;
 
 		case SOUND_BUFFER:
 			if (_sound_asset.ref->valueReal == -1)
@@ -129,6 +126,9 @@ void destroy_sounds()
 			}
 			break;
 		}
+
+		if (!result)
+			continue;
 
 		if (result->valueReal == 1)
 		{
