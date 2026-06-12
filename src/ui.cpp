@@ -13,6 +13,7 @@
 #include <memory>
 #include <config.h>
 
+const std::string ui_title = std::format("{}; version {}", MOD_NAME, VERSION_STR);
 void __setup_ui()
 {
 	ImGui::CreateContext();
@@ -24,7 +25,7 @@ static int sprite_id = 0;
 RValue* sprite;
 void render_ui()
 {
-	if (ImGui::Begin(MOD_NAME))
+	if (ImGui::Begin(ui_title.c_str()))
 	{
 		if (ImGui::BeginMenuBar())
 		{
@@ -53,6 +54,11 @@ void render_ui()
 		if (ImGui::Button("Reload Textures"))
 		{
 			apply_packs(true);
+		}
+
+		if (ImGui::Button("Refresh Packlist"))
+		{
+			update_pack_queue();
 		}
 
 		pack_queue* pack_list = get_loaded_packs();
