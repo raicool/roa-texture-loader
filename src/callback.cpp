@@ -20,7 +20,7 @@ void handle_wndproc(
 	LPARAM lParam
 )
 {
-	if (uMsg == WM_KEYDOWN && wParam == VK_F1)
+	if (uMsg == WM_KEYDOWN)
 	{
 		switch (wParam)
 		{
@@ -29,7 +29,7 @@ void handle_wndproc(
 			break;
 		
 		case VK_F3:
-			g_uiflag = !g_uiflag;
+			g_uiflag ^= 1;
 			break;
 		}
 		
