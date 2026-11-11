@@ -78,7 +78,7 @@ void apply_packs(bool play_sound)
 					sound_paths.emplace_back(_sound_file);
 				}
 
-				load_sounds(_pack, sprite_paths);
+				load_sounds(_pack, sound_paths);
 
 				sound_paths.clear();
 			}
