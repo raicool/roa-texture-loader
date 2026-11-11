@@ -51,20 +51,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE "vendor/imgui/backends")
 # yaml-cpp
 target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp::yaml-cpp)
 
-# nlohmann/json
-#add_subdirectory("vendor/nlohmann_json")
-#target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
-
-# libpng
-#add_subdirectory("vendor/libpng")
-#target_link_libraries(${PROJECT_NAME} PRIVATE PNG::PNG)
-
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/details.yaml" "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/info.yaml"
 )
 
-add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND "py" "${CMAKE_SOURCE_DIR}/script/launch.py"
-)
+#add_custom_command(
+#    TARGET ${PROJECT_NAME} POST_BUILD
+#    COMMAND "py" "${CMAKE_SOURCE_DIR}/script/launch.py"
+#)
