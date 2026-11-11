@@ -56,7 +56,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/details.yaml" "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/info.yaml"
 )
 
-#add_custom_command(
-#    TARGET ${PROJECT_NAME} POST_BUILD
-#    COMMAND "py" "${CMAKE_SOURCE_DIR}/script/launch.py"
-#)
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND "py" "${CMAKE_SOURCE_DIR}/script/launch.py"
+)
