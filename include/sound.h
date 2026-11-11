@@ -2,6 +2,8 @@
 
 #include <filesystem>
 
-void __setup_sound();
+struct TexturePack;
 
-void load_sound(const std::filesystem::path& entry);
+void setup_sound();
+void destroy_sounds();
+void load_sounds(TexturePack* pack, const std::vector<std::filesystem::path>& sound_paths);

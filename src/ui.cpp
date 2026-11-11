@@ -2,7 +2,6 @@
 
 #include "mod.h"
 #include "pack_queue.h"
-#include "func_ids.h"
 
 #include <loader/d3d11_hook.h>
 
@@ -14,7 +13,7 @@
 #include <config.h>
 
 const std::string ui_title = std::format("{}; version {}", MOD_NAME, VERSION_STR);
-void __setup_ui()
+void setup_ui()
 {
 	ImGui::CreateContext();
 
@@ -61,7 +60,7 @@ void render_ui()
 			update_pack_queue();
 		}
 
-		pack_queue* pack_list = get_loaded_packs();
+		TexturePackList* pack_list = get_loaded_packs();
 
 		if (pack_list)
 		{
@@ -71,7 +70,7 @@ void render_ui()
 	ImGui::End();
 }
 
-void render_table(pack_queue& pack_list)
+void render_table(TexturePackList& pack_list)
 {
 	constexpr ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_HighlightHoveredColumn;
 
@@ -84,7 +83,7 @@ void render_table(pack_queue& pack_list)
 		ImGui::TableSetupColumn("Enabled", ImGuiTableColumnFlags_WidthFixed, 128);
 		ImGui::TableHeadersRow();
 		uint32_t i = 0;
-		for (const std::shared_ptr<pack>& _pack : pack_list)
+		for (const std::shared_ptr<TexturePack>& _pack : pack_list)
 		{
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
@@ -101,7 +100,7 @@ void render_table(pack_queue& pack_list)
 	}
 }
 
-void render_packdata(pack_queue& queue, const std::shared_ptr<pack>& packdata)
+void render_packdata(TexturePackList& list, const std::shared_ptr<TexturePack>& packdata)
 {
 	ImGui::TableSetColumnIndex(2);
 	ImGui::Text("%s", packdata->name.c_str());
@@ -117,12 +116,12 @@ void render_packdata(pack_queue& queue, const std::shared_ptr<pack>& packdata)
 	ImGui::TableSetColumnIndex(0);
 	if (ImGui::Button("^"))
 	{
-		queue.raise(packdata);
+		list.raise(packdata);
 	}
 
 	if (ImGui::Button("v"))
 	{
-		queue.lower(packdata);
+		list.lower(packdata);
 	}
 
 	// render pack image last since we need to know the height of the table row

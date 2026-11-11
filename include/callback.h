@@ -4,9 +4,9 @@
 
 void handle_wndproc(
 	const HWND hWnd,
-	UINT uMsg,
-	WPARAM wParam,
-	LPARAM lParam
+	UINT& uMsg,
+	WPARAM& wParam,
+	LPARAM& lParam
 );
 
 void dx_present(

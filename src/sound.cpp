@@ -1,7 +1,7 @@
 #include "sound.h"
 
-#include "func_ids.h"
 #include "riff.h"
+#include "pack.h"
 
 #include "loader/yyc.h"
 
@@ -9,74 +9,77 @@
 #include <filesystem>
 #include <fstream>
 #include <unordered_map>
+#include <memory>
 
-enum buffer_type
-{
-	buffer_fixed,
-	buffer_grow,
-	buffer_wrap,
-	buffer_fast
-};
-
-enum buffer_format
-{
-	buffer_null,
-	buffer_u8,
-	buffer_s8,
-	buffer_u16,
-	buffer_s16,
-	buffer_u32,
-	buffer_s32,
-	buffer_u64,
-	buffer_f16,
-	buffer_f32,
-	buffer_f64,
-	buffer_bool,
-	buffer_string,
-	buffer_text,
-};
-
-enum e_sound_data_type
+enum SoundDataType
 {
 	SOUND_STREAM = 0,
 	SOUND_BUFFER = 1
 };
 
-struct ref_sound_asset
+struct SoundAssetReference
 {
 	uint8_t type;
-	RValue* ref;
-	RValue* buffer_ref = nullptr; //< set to nullptr if not a buffer asset
+	std::shared_ptr<RValue> ref;
+	std::shared_ptr<RValue> buffer_ref = nullptr; //< set to nullptr if not a buffer asset
 };
 
-std::unordered_map<double, ref_sound_asset> loaded_sound;
+std::unordered_map<double, SoundAssetReference> loaded_sound;
 
-//
-//	args
-//	audio_play_sound(index, priority, loop, [gain], [offset], [pitch], [listener_mask]);
-//
-PFUNC_YYGMLScript audio_play_sound_original;
-PFUNC_YYGMLScript audio_play_sound_at_original;
-void audio_play_sound_detour(GMLInstance* self, GMLInstance* other, RValue& out, uint32_t arg_count, RValue* args)
+void try_overwrite_sound_id(RValue* sound_id)
 {
-	if (loaded_sound.size() > 0)
+	if (loaded_sound.contains(sound_id->get_s32()))
 	{
-		uint32_t original_id = args[0].getInt32();
+		const SoundAssetReference& overwriting_sound = loaded_sound[sound_id->get_s32()];
 
-		if (loaded_sound.contains(original_id))
+		switch (overwriting_sound.type)
 		{
-			args[0].type = GML_TYPE_REAL;
-			args[0].valueReal = loaded_sound[original_id].ref->valueReal;
+		case SOUND_STREAM:
+			if (overwriting_sound.ref)
+			{
+				sound_id->set_real(overwriting_sound.ref->get_real());
+			}
+			break;
+
+		case SOUND_BUFFER:
+			if (overwriting_sound.buffer_ref)
+			{
+				sound_id->set_real(overwriting_sound.buffer_ref->get_real());
+			}
+			break;
 		}
 	}
+}
 
+PFUNC_YYInternal audio_play_sound_original;
+PFUNC_YYInternal audio_play_sound_at_original;
+PFUNC_YYInternal audio_play_sound_on_original;
+void audio_play_sound_detour(CInstance* self, CInstance* other, RValue* out, uint32_t arg_count, RValue* args)
+{
+	RValue* sound_id = &args[0];
+	try_overwrite_sound_id(sound_id);
 	audio_play_sound_original(self, other, out, arg_count, args);
 }
 
-void __setup_sound()
+void audio_play_sound_at_detour(CInstance* self, CInstance* other, RValue* out, uint32_t arg_count, RValue* args)
 {
-	uint32_t audio_play_sound = (uint32_t)loader_get_yyc_func_ptr("audio_play_sound");
-	uint32_t audio_play_sound_at = (uint32_t)loader_get_yyc_func_ptr("audio_play_sound_at");
+	RValue* sound_id = &args[0];
+	try_overwrite_sound_id(sound_id);
+	audio_play_sound_at_original(self, other, out, arg_count, args);
+}
+
+void audio_play_sound_on_detour(CInstance* self, CInstance* other, RValue* out, uint32_t arg_count, RValue* args)
+{
+	RValue* sound_id = &args[1];
+	try_overwrite_sound_id(sound_id);
+	audio_play_sound_on_original(self, other, out, arg_count, args);
+}
+
+void setup_sound()
+{
+	uint32_t audio_play_sound    = (uint32_t)loader_get_builtin("audio_play_sound");
+	uint32_t audio_play_sound_at = (uint32_t)loader_get_builtin("audio_play_sound_at");
+	uint32_t audio_play_sound_on = (uint32_t)loader_get_builtin("audio_play_sound_on");
 
 	loader_hook_create(
 		reinterpret_cast<void*>(audio_play_sound),
@@ -86,12 +89,19 @@ void __setup_sound()
 
 	loader_hook_create(
 		reinterpret_cast<void*>(audio_play_sound_at),
-		&audio_play_sound_detour,
+		&audio_play_sound_at_detour,
 		reinterpret_cast<void**>(&audio_play_sound_at_original)
+	);
+
+	loader_hook_create(
+		reinterpret_cast<void*>(audio_play_sound_on),
+		&audio_play_sound_on_detour,
+		reinterpret_cast<void**>(&audio_play_sound_on_original)
 	);
 
 	loader_hook_enable(reinterpret_cast<void*>(audio_play_sound));
 	loader_hook_enable(reinterpret_cast<void*>(audio_play_sound_at));
+	loader_hook_enable(reinterpret_cast<void*>(audio_play_sound_on));
 }
 
 void destroy_sounds()
@@ -99,121 +109,83 @@ void destroy_sounds()
 	RValue cur_id;
 	for (auto& [_id, _sound_asset] : loaded_sound)
 	{
-		cur_id.type = GML_TYPE_REAL;
-		cur_id.valueReal = _id;
-
-		RValue* destroy_args[] = { &cur_id };
-
-
-		RValue* result = 0;
+		RValue result = 0;
 		switch (_sound_asset.type)
 		{
 		case SOUND_STREAM:
-			result = loader_yyc_call_func(audio_destroy_stream, 1, destroy_args);
+			result = loader_call_builtin_ex("audio_destroy_stream", nullptr, nullptr, { *_sound_asset.ref });
 			break;
 
 		case SOUND_BUFFER:
-			if (_sound_asset.ref->valueReal == -1)
+			if (_sound_asset.ref->value_real == -1)
 				break;
 
-			result = loader_yyc_call_func("audio_free_buffer_sound", 1, destroy_args);
+			result = loader_call_builtin_ex("audio_free_buffer_sound", nullptr, nullptr, { *_sound_asset.buffer_ref });
 
 			if (_sound_asset.buffer_ref)
 			{
-				RValue* delete_args[] = { _sound_asset.buffer_ref };
-				loader_yyc_call_func("buffer_delete", 1, delete_args);
-				delete _sound_asset.buffer_ref;
+				loader_call_builtin_ex("buffer_delete", nullptr, nullptr, { *_sound_asset.buffer_ref });
 			}
 			break;
 		}
 
-		if (!result)
-			continue;
-
-		if (result->valueReal == 1)
+		if (result.truthy() == false)
 		{
-			// successfully destroyed audio stream
-			delete _sound_asset.ref;
-			loaded_sound.erase(_id);
-		}
-		else
-		{
-			loader_log_error("destroy_sound(): error occured trying to delete sound asset with id \"{}\" (0x{:08x})", _id, (void*)_sound_asset.ref);
+			loader_log_error("destroy_sound(): error occured trying to delete sound asset with id \"{}\" (0x{:08x})", _id, (int)_sound_asset.ref.get());
 		}
 	}
+
+	loaded_sound.clear();
 }
 
-RValue* buffer_create(int size, buffer_type type, int alignment)
+RValue buffer_create(int size, YYBufferType type, int alignment)
 {
-	RValue _rv_size = RValue(size);
-	RValue _rv_type = RValue(type);
-	RValue _rv_alignment = RValue(alignment);
-	RValue* _rv_args[] = { &_rv_size, &_rv_type, &_rv_alignment };
-	return loader_yyc_call_func("buffer_create", 3, _rv_args);
+	return loader_call_builtin_ex("buffer_create", nullptr, nullptr, { size, type, alignment });
 }
 
-RValue* buffer_get_address(RValue* buffer)
+RValue buffer_get_address(RValue buffer)
 {
-	RValue* _rv_args[] = { buffer };
-	return loader_yyc_call_func("buffer_get_address", 1, _rv_args);
+	return loader_call_builtin_ex("buffer_get_address", nullptr, nullptr, { buffer });
 }
 
-RValue* buffer_load_partial(RValue* buffer, const char* filename, int offset, int src_len, int dest_offset)
+RValue buffer_load_partial(RValue buffer, const char* filename, int offset, int src_len, int dest_offset)
 {
-	RValue _rv_filename = RValue(filename);
-	RValue _rv_offset = RValue(offset);
-	RValue _rv_src_len = RValue(src_len);
-	RValue _rv_dest_offset = RValue(dest_offset);
-	RValue* _rv_args[] = { buffer, &_rv_filename, &_rv_offset, &_rv_src_len, &_rv_dest_offset };
-	return loader_yyc_call_func("buffer_load_partial", 5, _rv_args);
+	return loader_call_builtin_ex("buffer_load_partial", nullptr, nullptr, { buffer, filename, offset, src_len, dest_offset });
 }
 
-RValue* buffer_fill(RValue* buffer, int offset, int type, int value, int size)
+RValue buffer_fill(RValue buffer, int offset, int type, int value, int size)
 {
-	RValue _rv_offset = RValue(offset);
-	RValue _rv_type = RValue(type);
-	RValue _rv_value = RValue(value);
-	RValue _rv_size = RValue(size);
-	RValue* _rv_args[] = { buffer, &_rv_size, &_rv_type, &_rv_value, &_rv_size };
-	return loader_yyc_call_func("buffer_fill", 5, _rv_args);
+	return loader_call_builtin_ex("buffer_fill", nullptr, nullptr, { buffer, size, type, value, size });
 }
 
-RValue* load_vorbis(const std::filesystem::path& entry)
+std::shared_ptr<RValue> load_vorbis(const std::filesystem::path& entry)
 {
 	std::string file_stem = entry.stem().generic_string();
 	std::string file_path = entry.generic_string();
 
-	RValue sound_name = RValue(file_stem);
-	RValue* args[] = { &sound_name };
-	RValue* sound_id = loader_yyc_call_func(asset_get_index, 1, args);
+	const int original_sound_id = loader_call_builtin_ex("asset_get_index", nullptr, nullptr, { file_stem }).get_s32();
 
-	args[0] = sound_id;
-	if (loader_yyc_call_func(audio_exists, 1, args)->truthy())
+	if (loader_call_builtin_ex("audio_exists", nullptr, nullptr, { original_sound_id }).truthy())
 	{
-		RValue sound_filename = RValue(file_path);
+		std::shared_ptr<RValue> new_sound_asset = std::make_shared<RValue>();
+		*new_sound_asset = loader_call_builtin_ex("audio_create_stream", nullptr, nullptr, { file_path });
 
-		args[0] = &sound_filename;
-		RValue* new_sound_asset = loader_yyc_call_func(audio_create_stream, 1, args);
-
-		loaded_sound[(uint32_t)sound_id->valueReal] = { SOUND_STREAM, new_sound_asset };
-		return new_sound_asset;
+		loaded_sound[original_sound_id] = { SOUND_STREAM, std::move(new_sound_asset)};
+		return loaded_sound[original_sound_id].buffer_ref;
 	}
 	return nullptr;
 }
 
-RValue* load_waveform(const std::filesystem::path& entry)
+std::shared_ptr<RValue> load_waveform(const std::filesystem::path& entry)
 {
 	std::string file_stem = entry.stem().generic_string();
 	std::string file_path = entry.generic_string();
 
-	RValue sound_name = RValue(file_stem);
-	RValue* args[] = { &sound_name };
-	RValue* sound_id = loader_yyc_call_func(asset_get_index, 1, args);
+	const int original_sound_id = loader_call_builtin_ex("asset_get_index", nullptr, nullptr, { file_stem }).get_s32();
 
-	args[0] = sound_id;
-	if (loader_yyc_call_func(audio_exists, 1, args)->truthy())
+	if (loader_call_builtin_ex("audio_exists", nullptr, nullptr, { original_sound_id }).truthy())
 	{
-		riff* waveform_data = read_riff(file_path);
+		Riff* waveform_data = read_riff(file_path);
 
 		if (waveform_data->format_block.audio_format != 1)
 		{
@@ -231,11 +203,12 @@ RValue* load_waveform(const std::filesystem::path& entry)
 
 		const uint32_t data_size = waveform_data->file_size;
 
-		RValue* new_buffer = buffer_create(data_size, buffer_wrap, 1);
-		if (new_buffer->valueReal < 0)
+		std::unique_ptr<RValue> new_buffer = std::make_unique<RValue>();
+		*new_buffer = buffer_create(data_size, buffer_wrap, 1);
+		if (new_buffer->value_real < 0)
 		{
 			std::string err_string = "load_waveform(): error creating buffer; ";
-			switch (int(new_buffer->valueReal))
+			switch (int(new_buffer->value_real))
 			{
 				case -1:
 					err_string.append("buffer_error_general");
@@ -253,9 +226,15 @@ RValue* load_waveform(const std::filesystem::path& entry)
 			return nullptr;
 		}
 
-		buffer_fill(new_buffer, 0, buffer_u8, 24, data_size);
-		RValue* buffer_addr = buffer_get_address(new_buffer);
-		memcpy(buffer_addr->valuePointer, waveform_data->data, data_size);
+		buffer_fill(*new_buffer, 0, buffer_u8, 24, data_size);
+		RValue buffer_addr = buffer_get_address(new_buffer.get());
+		if (buffer_addr.value_ptr == nullptr)
+		{
+			loader_log_error("load_waveform(): error creating buffer; (buffer_addr == nullptr)");
+			return nullptr;
+		}
+
+		memcpy(buffer_addr.value_ptr, waveform_data->data, data_size);
 		
 		enum
 		{
@@ -264,11 +243,11 @@ RValue* load_waveform(const std::filesystem::path& entry)
 			audio_3d
 		};
 
-		RValue buff_fmt = waveform_data->format_block.bit_depth == 16 ? buffer_s16 : buffer_u8;
-		RValue buff_sample_rate = int(waveform_data->format_block.sample_speed);
-		RValue buff_offset = int(waveform_data->data_offset);
-		RValue buff_length = int(waveform_data->file_size - waveform_data->data_offset);
-		RValue buff_channels;
+		int buff_fmt = waveform_data->format_block.bit_depth == 16 ? buffer_s16 : buffer_u8;
+		int buff_sample_rate = int(waveform_data->format_block.sample_speed);
+		int buff_offset = int(waveform_data->data_offset);
+		int buff_length = int(waveform_data->file_size - waveform_data->data_offset);
+		int buff_channels;
 
 		if (waveform_data->format_block.channel_count > 2)
 			buff_channels = int(audio_3d);
@@ -276,51 +255,56 @@ RValue* load_waveform(const std::filesystem::path& entry)
 			//buff_channels = int(audio_3d);
 			buff_channels = int(waveform_data->format_block.channel_count == 1 ? audio_mono : audio_stereo);
 
-		RValue* _rv_create_buffer_args[] = 
-		{ 
-			new_buffer,
-			&buff_fmt,
-			&buff_sample_rate,
-			&buff_offset,
-			&buff_length,
-			&buff_channels,
-		};
-
-		RValue* new_sound_asset = loader_yyc_call_func(audio_create_buffer_sound, 6, _rv_create_buffer_args);
+		std::unique_ptr<RValue> new_sound_asset = std::make_unique<RValue>();
+		*new_sound_asset = loader_call_builtin_ex(
+			"audio_create_buffer_sound",
+			nullptr,
+			nullptr,
+			{
+				*new_buffer,
+				buff_fmt,
+				buff_sample_rate,
+				buff_offset,
+				buff_length,
+				buff_channels,
+			}
+		);
 		
 		waveform_data->free();
 		delete waveform_data;
 
-		if (new_sound_asset->valueReal == -1)
+		if (new_sound_asset->value_real == -1)
 		{
 			loader_log_error("load_waveform(): error while attempting to load waveform \"{}\"", file_path);
 			return nullptr;
 		}
 
-		loaded_sound[(uint32_t)sound_id->valueReal] = { SOUND_BUFFER, new_sound_asset, new_buffer };
+		loaded_sound[original_sound_id] = { SOUND_BUFFER, std::move(new_sound_asset), std::move(new_buffer)};
 
-		return new_sound_asset;
+		return loaded_sound[original_sound_id].buffer_ref;
 	}
 	return nullptr;
 }
 
-void load_sound(const std::filesystem::path& entry)
+void load_sounds(TexturePack* pack, const std::vector<std::filesystem::path>& sound_paths)
 {
-	if (!ready)
-	{
-		__setup_funcids();
-	}
+	loader_log_info("loading {} sound for texture pack \"{}\"", sound_paths.size(), pack->name);
 
-	if (entry.extension() == ".ogg")
+	for (auto& entry : sound_paths)
 	{
-		load_vorbis(entry);
-		return;
-	}
+		logger_nestscope nest;
 
-	if (entry.extension() == ".wav")
-	{
-		load_waveform(entry);
-		return;
+		if (entry.extension() == ".ogg")
+		{
+			load_vorbis(entry);
+			return;
+		}
+
+		if (entry.extension() == ".wav")
+		{
+			load_waveform(entry);
+			return;
+		}
 	}
 
 	// set the loop points to 0

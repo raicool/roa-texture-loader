@@ -4,8 +4,8 @@
 
 #include <memory>
 
-void __setup_ui();
+void setup_ui();
 void render_ui();
-struct pack;
-void render_packdata(pack_queue&, const std::shared_ptr<pack>& packdata);
-void render_table(pack_queue& pack_list);
+struct TexturePack;
+void render_packdata(TexturePackList&, const std::shared_ptr<TexturePack>& packdata);
+void render_table(TexturePackList& pack_list);

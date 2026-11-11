@@ -2,10 +2,10 @@
 
 #include "loader/log.h"
 
-riff* read_riff(const std::string path, bool load_data)
+Riff* read_riff(const std::string path, bool load_data)
 {
 	FILE* waveform_file = fopen(path.c_str(), "rb");
-	riff* riff_data = new riff();
+	Riff* riff_data = new Riff();
 
 	fseek(waveform_file, 0, SEEK_END);
 	riff_data->file_size = ftell(waveform_file);
@@ -17,14 +17,14 @@ riff* read_riff(const std::string path, bool load_data)
 		return nullptr;
 	}
 
-	fread(&riff_data->master_block, 1, sizeof(master_header), waveform_file);
-	fread(&riff_data->format_block, 1, sizeof(format_chunk_header), waveform_file);
+	fread(&riff_data->master_block, 1, sizeof(MasterHeader), waveform_file);
+	fread(&riff_data->format_block, 1, sizeof(FormatChunkHeader), waveform_file);
 	
-	generic_header generic_subblock{};
+	GenericHeader generic_subblock{};
 
 	while (true)
 	{
-		fread(&generic_subblock, 1, sizeof(generic_header), waveform_file);
+		fread(&generic_subblock, 1, sizeof(GenericHeader), waveform_file);
 
 		if (*(unsigned int*)&generic_subblock.block_id == 0x61746164) // "data" sub block
 		{
@@ -56,11 +56,11 @@ riff* read_riff(const std::string path, bool load_data)
 	return riff_data;
 }
 
-void riff::free()
+void Riff::free()
 {
-	if (data)
+	if (this->data)
 	{
-		delete[] data;
-		data = nullptr;
+		delete[] this->data;
+		this->data = nullptr;
 	}
 }

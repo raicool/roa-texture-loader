@@ -5,16 +5,16 @@
 
 #define SPRITE_DIRECTORY "custom_sprites/"
 
-struct pack_queue
+struct TexturePackList
 {
-	std::vector<std::shared_ptr<pack>> data;
-	using pack_ptr = std::shared_ptr<pack>;
-	void emplace(const pack_ptr& _new_data)
+	std::vector<std::shared_ptr<TexturePack>> data;
+
+	void emplace(const std::shared_ptr<TexturePack>& _new_data)
 	{
 		data.emplace_back(_new_data);
 	}
 
-	void raise(pack_ptr _pack)
+	void raise(std::shared_ptr<TexturePack> _pack)
 	{
 		for (int i = data.size() - 1; i > 0; i--)
 		{
@@ -27,7 +27,7 @@ struct pack_queue
 		}
 	}
 
-	void lower(pack_ptr _pack)
+	void lower(std::shared_ptr<TexturePack> _pack)
 	{
 		for (int i = 0; i < data.size() - 1; i++)
 		{
@@ -47,9 +47,13 @@ struct pack_queue
 
 	void sort()
 	{
-		std::sort(begin(), end(), [&](const pack_ptr& a, const pack_ptr& b) {
+		std::sort(begin(), end(), [&](
+			const std::shared_ptr<TexturePack>& a, 
+			const std::shared_ptr<TexturePack>& b) 
+			{
 			return a->priority > b->priority;
-			});
+			}
+		);
 	}
 
 	void sanitize()
@@ -57,7 +61,7 @@ struct pack_queue
 		int16_t idx = 0;
 		for (int i = data.size() - 1; i >= 0; i--)
 		{
-			pack_ptr r = data[i];
+			std::shared_ptr<TexturePack> r = data[i];
 			if (r->priority != idx)
 			{
 				r->priority = idx;
@@ -71,6 +75,7 @@ struct pack_queue
 	inline void clear() { data.clear(); }
 };
 
+TexturePackList* get_loaded_packs();
+
 void update_pack_queue();
-pack_queue* get_loaded_packs();
 void apply_packs(bool play_apply_sound = false);

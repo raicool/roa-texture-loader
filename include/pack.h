@@ -6,14 +6,14 @@
 #include <thread>
 
 struct ID3D11ShaderResourceView;
-struct pack
+struct TexturePack
 {
 	std::string name; //< name of the pack
 	std::string author; //< pack creator
 	std::string description; //< pack description
 	uint32_t version; //< game version that pack is intended to be used with
 
-	ID3D11ShaderResourceView* pack_img; //< pack image to be used in the texture pack menu
+	ID3D11ShaderResourceView* pack_img = nullptr; //< pack image to be used in the texture pack menu
 
 	std::filesystem::path sound_path; //< path to all sound files for texture pack
 	std::filesystem::path sprite_path; //< path to all sprite files for texture pack
@@ -22,9 +22,11 @@ struct pack
 
 	bool enabled; //< if pack should overwrite ingame textures
 	int16_t priority; //< priority of the texture pack, higher number overwrites lower priority packs' overlapping textures
+	int16_t texture_page_index; //< dynamic texture page index
 
 	void save();
+	
 };
 
-std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir);
-void fetch_packimg();
+std::shared_ptr<TexturePack> open_texture_pack(const std::filesystem::path& pack_dir);
+void terminate_texture_thread();

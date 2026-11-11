@@ -6,7 +6,7 @@
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
-#include <GMLScriptEnv/yoyo.h>
+#include <loader/yoyo.h>
 #include <loader/log.h>
 
 bool g_uiflag = true;
@@ -15,11 +15,17 @@ bool g_uiflag = true;
 
 void handle_wndproc(
 	const HWND hWnd,
-	UINT uMsg,
-	WPARAM wParam,
-	LPARAM lParam
+	UINT& uMsg,
+	WPARAM& wParam,
+	LPARAM& lParam
 )
 {
+	if (g_uiflag)
+	{
+		HCURSOR cursor = LoadCursorA(0, IDC_ARROW);
+		SetCursor(cursor);
+	}
+
 	if (uMsg == WM_KEYDOWN)
 	{
 		switch (wParam)
@@ -33,12 +39,6 @@ void handle_wndproc(
 			break;
 		}
 		
-	}
-
-	if (IS_MOUSE_EVENT(uMsg) && g_uiflag)
-	{
-		HCURSOR cursor = LoadCursorA(0, IDC_ARROW);
-		SetCursor(cursor);
 	}
 
 	LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

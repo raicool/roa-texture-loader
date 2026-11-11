@@ -15,50 +15,74 @@
 #include <format>
 #include <queue>
 
-struct img_request
+struct TextureThreadQueueData
 {
 	unsigned char* buffer;
 	size_t length;
 	ID3D11ShaderResourceView** shader_res;
 };
 
-std::mutex img_queue_mutex;
-std::queue<img_request> img_buffer_queue;
+std::mutex mlock;
+std::queue<TextureThreadQueueData> texture_queue;
+std::condition_variable cv;
+bool terminating = false;
 
 using namespace std::literals::chrono_literals;
 
-void fetch_packimg()
+// executed from texture fetch thread
+void worker_thread_proc_image()
 {
-	std::unique_lock<std::mutex> lock(img_queue_mutex);
-	while (!img_buffer_queue.empty())
+	std::unique_lock<std::mutex> lock(mlock);
+	HRESULT hr;
+
+	hr = CoInitialize(nullptr);
+
+	if (hr != S_OK)
 	{
-		img_request img = img_buffer_queue.front();
-		img_buffer_queue.pop();
-			
-		auto d3d_device = loader_get_d3d_device();
-		auto d3d_device_context = loader_get_d3d_device_context();
-		while (!d3d_device && !d3d_device_context)
+		loader_log_warn("texture worker thread failed to call CoInitialize successfully");
+		loader_log_warn("texture pack images will not render :((");
+		return;
+	}
+
+	while (1)
+	{
+		cv.wait(lock, [] { return terminating == true || texture_queue.size() > 0; });
+
+		if (terminating)
 		{
-			// wait for d3d device/context
-			std::this_thread::sleep_for(500ms);
-			d3d_device = loader_get_d3d_device();
-			d3d_device_context = loader_get_d3d_device_context();
+			break;
 		}
 
-		HRESULT hr;
+		auto d3d_device = loader_get_d3d_device();
+		while (!d3d_device)
+		{
+			// wait for d3d device
+			std::this_thread::sleep_for(500ms);
+			d3d_device = loader_get_d3d_device();
+		}
+
+		TextureThreadQueueData img = texture_queue.front();
+		texture_queue.pop();
+
 		hr = CreateWICTextureFromMemory(
 			d3d_device,
-			d3d_device_context,
+			nullptr,
 			&img.buffer[0],
 			img.length,
 			nullptr,
-			img.shader_res,
-			NULL
+			img.shader_res
 		);
+
+		if (hr != S_OK)
+		{
+			loader_log_warn("error while trying to create texture");
+			loader_log_warn("error id: 0x{:08x}", (unsigned int)hr);
+		}
 	}
 }
+std::thread worker_thread(worker_thread_proc_image);
 
-std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
+std::shared_ptr<TexturePack> open_texture_pack(const std::filesystem::path& pack_dir)
 {
 	if (std::filesystem::is_directory(pack_dir) == false)
 	{
@@ -66,7 +90,7 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 		return nullptr;
 	}
 
-	std::shared_ptr<pack> _pack = std::make_shared<pack>();
+	std::shared_ptr<TexturePack> _pack = std::make_shared<TexturePack>();
 	const std::string pack_ini_path = pack_dir.generic_string() + "/pack.ini";
 
 	if (file_exists(pack_ini_path))
@@ -160,11 +184,8 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 		pack_img.read(&buffer[0], length);
 		pack_img.close();
 
-		img_buffer_queue.push(img_request{ buffer, (size_t)length, &_pack->pack_img });
-	}
-	else
-	{
-		// TODO: placeholder pack img
+		texture_queue.push(TextureThreadQueueData{ buffer, (size_t)length, &_pack->pack_img });
+		cv.notify_all();
 	}
 
 	_pack->pack_path = pack_dir.generic_string();
@@ -175,7 +196,7 @@ std::shared_ptr<pack> open_texture_pack(const std::filesystem::path& pack_dir)
 	return _pack;
 }
 
-void pack::save()
+void TexturePack::save()
 {
 	const std::string path = pack_path.generic_string() + "/local_pref.ini";
 	std::ofstream out_file(path, std::ios::out);
@@ -187,4 +208,15 @@ void pack::save()
 
 	out_file << config;
 	out_file.close();
+}
+
+void terminate_texture_thread()
+{
+	terminating = true;
+	cv.notify_all();
+
+	if (worker_thread.joinable())
+	{
+		worker_thread.join();
+	}
 }
